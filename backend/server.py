@@ -301,7 +301,15 @@ async def generate_image(request: GenerationRequest, user: User = Depends(get_cu
             
             from openai import OpenAI
             
-            client = OpenAI(api_key=api_key)
+            # Use Emergent proxy for universal key, direct OpenAI for custom key
+            if keys.use_emergent_key:
+                client = OpenAI(
+                    api_key=api_key,
+                    base_url="https://integrations.emergentagent.com/openai/v1"
+                )
+            else:
+                client = OpenAI(api_key=api_key)
+            
             response = client.images.generate(
                 model="gpt-image-1",
                 prompt=request.prompt,
