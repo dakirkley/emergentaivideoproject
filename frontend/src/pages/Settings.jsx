@@ -298,7 +298,7 @@ export default function Settings() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Clear API Key?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will remove your {field.label}. You'll need to enter it again to use this service.
+                              This will remove your {field.label}. You will need to enter it again to use this service.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

@@ -32,13 +32,6 @@ export default function VideoGeneration() {
   const [apiKeysStatus, setApiKeysStatus] = useState(null);
   const pollingRef = useRef(null);
 
-  useEffect(() => {
-    fetchApiKeys();
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
-  }, []);
-
   const fetchApiKeys = async () => {
     try {
       const res = await axios.get(`${API}/settings/api-keys`, { withCredentials: true });
@@ -47,6 +40,13 @@ export default function VideoGeneration() {
       console.error("Error fetching API keys:", error);
     }
   };
+
+  useEffect(() => {
+    fetchApiKeys();
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const canGenerate = () => {
     if (provider === "kling") return apiKeysStatus?.has_kling_key;
