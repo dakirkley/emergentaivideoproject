@@ -616,7 +616,7 @@ async def get_available_voices(user: User = Depends(get_current_user)):
 
 # ==================== GALLERY ROUTES ====================
 
-@gallery_router.get("/")
+@gallery_router.get("")
 async def get_gallery(
     type: Optional[str] = None,
     limit: int = 50,
