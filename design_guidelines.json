@@ -1,0 +1,178 @@
+{
+  "identity": {
+    "name": "E1 - The Anti-AI Designer",
+    "mission": "Create a unique, emotionally directed creative studio that breaks category conventions.",
+    "principles": [
+      "Fusion over Imitation",
+      "Emotion First",
+      "Content is King",
+      "Zoom In",
+      "Negative Space",
+      "Contrast"
+    ]
+  },
+  "design_strategy": {
+    "theme_strategy": "Dark Mode First (Creative/Immersive) with Light Mode Toggle",
+    "archetype": "ARCHETYPE 2: ELECTRIC & NEON (Future, Speed, Disruption)",
+    "vibe": "Glowing, synthetic, aggressive but grounded with matte blacks.",
+    "primary_action_color": "Electric Orange (#f97316) - To signify creation and energy, avoiding the generic purple/teal.",
+    "marketing_style": "Tetris Grid, Asymmetry, High Impact",
+    "dashboard_style": "Control Room Grid, Dense, Functional Beauty"
+  },
+  "typography": {
+    "fonts": {
+      "heading": {
+        "family": "Outfit, sans-serif",
+        "weights": ["400", "700", "900"],
+        "usage": "Landing page headlines, major section titles. Use tight tracking."
+      },
+      "body": {
+        "family": "Plus Jakarta Sans, sans-serif",
+        "weights": ["400", "500", "600"],
+        "usage": "UI text, paragraphs, inputs. Optimized for legibility."
+      },
+      "mono": {
+        "family": "JetBrains Mono, monospace",
+        "weights": ["400"],
+        "usage": "API keys, code snippets, technical data."
+      }
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight.",
+      "Overlines must be Uppercase + tracking-widest + text-xs.",
+      "Never use Inter for headings."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "light": {
+        "background": "#f4f4f5",
+        "foreground": "#18181b",
+        "card": "#ffffff",
+        "card_foreground": "#18181b",
+        "primary": "#f97316",
+        "primary_foreground": "#ffffff",
+        "secondary": "#e4e4e7",
+        "secondary_foreground": "#18181b",
+        "muted": "#f4f4f5",
+        "muted_foreground": "#71717a",
+        "accent": "#f4f4f5",
+        "accent_foreground": "#18181b",
+        "destructive": "#ef4444",
+        "destructive_foreground": "#ffffff",
+        "border": "#e4e4e7",
+        "input": "#e4e4e7",
+        "ring": "#f97316"
+      },
+      "dark": {
+        "background": "#09090b",
+        "foreground": "#fafafa",
+        "card": "#18181b",
+        "card_foreground": "#fafafa",
+        "primary": "#f97316",
+        "primary_foreground": "#ffffff",
+        "secondary": "#27272a",
+        "secondary_foreground": "#fafafa",
+        "muted": "#27272a",
+        "muted_foreground": "#a1a1aa",
+        "accent": "#27272a",
+        "accent_foreground": "#fafafa",
+        "destructive": "#7f1d1d",
+        "destructive_foreground": "#fafafa",
+        "border": "#27272a",
+        "input": "#27272a",
+        "ring": "#f97316"
+      }
+    },
+    "semantic": {
+      "brand_gradient": "from-orange-500 to-amber-500",
+      "glass_surface": "bg-black/40 backdrop-blur-xl border-white/10",
+      "neon_glow": "shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+    }
+  },
+  "layout": {
+    "spacing": {
+      "base": "Generous. Use p-8, p-12 for sections.",
+      "container_padding": "p-6 or p-8 for bordered containers."
+    },
+    "grids": {
+      "marketing": "Tetris Grid (grid-cols-12, gap-8, mixed spans)",
+      "dashboard": "Control Room Grid (grid-cols-4, gap-4, dense)"
+    },
+    "radius": {
+      "default": "rounded-xl",
+      "buttons": "rounded-full (Pill shape)",
+      "inputs": "rounded-lg"
+    }
+  },
+  "components": {
+    "strategy": {
+      "marketing": "Custom HTML + Tailwind. No Shadcn cards. Use raw divs for asymmetry.",
+      "app": "Shadcn components customized with brand colors and radius.",
+      "forms": "Shadcn Form, Input, Select, Checkbox.",
+      "feedback": "Sonner for toasts."
+    },
+    "specifics": {
+      "buttons": "Pill shaped. Primary = Electric Orange. Secondary = Ghost/Outline.",
+      "cards": "Flat, 1px border, no shadow by default. Hover = lift + glow.",
+      "inputs": "Minimalist, bottom border or subtle ring. No heavy backgrounds."
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_background": "https://images.unsplash.com/photo-1692599571997-638cce53e54a?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "gallery_placeholders": [
+        {
+          "url": "https://images.pexels.com/photos/8717531/pexels-photo-8717531.jpeg",
+          "alt": "Cinematic AI Portrait",
+          "category": "portrait"
+        },
+        {
+          "url": "https://images.pexels.com/photos/9063025/pexels-photo-9063025.jpeg",
+          "alt": "Surreal Landscape",
+          "category": "landscape"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1728330458318-70438beffc44?crop=entropy&cs=srgb&fm=jpg&q=85",
+          "alt": "Cyberpunk City",
+          "category": "city"
+        },
+        {
+          "url": "https://images.pexels.com/photos/5011647/pexels-photo-5011647.jpeg",
+          "alt": "Abstract 3D Art",
+          "category": "abstract"
+        }
+      ],
+      "avatars": [
+        "https://images.pexels.com/photos/11592813/pexels-photo-11592813.jpeg",
+        "https://images.pexels.com/photos/8941696/pexels-photo-8941696.jpeg"
+      ]
+    },
+    "icons": "lucide-react"
+  },
+  "motion": {
+    "library": "framer-motion",
+    "rules": [
+      "No transition: all.",
+      "Use spring physics for interactions.",
+      "Stagger children for lists/grids.",
+      "Page transitions: Opacity + slight Y-axis shift."
+    ]
+  },
+  "universal_guidelines": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "You MUST NOT apply universal transition. Eg: transition: all.",
+    "You MUST NOT center align the app container.",
+    "Always use modern button styles like pill-shaped.",
+    "NEVER use AI assistant Emoji characters.",
+    "Every interaction needs micro-animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Subtle grain textures, noise overlays, custom cursors.",
+    "All interactive elements MUST include data-testid attribute.",
+    "Use sonner for toasts."
+  ],
+  "instructions_to_main_agent": "Implement the design system by first updating the tailwind.config.js and index.css variables. Then build the layout shell. Use the provided image URLs for the gallery and hero sections. Ensure the 'Electric Orange' is used sparingly for high-impact actions only."
+}
