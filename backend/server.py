@@ -299,29 +299,19 @@ async def generate_image(request: GenerationRequest, user: User = Depends(get_cu
             if not api_key:
                 raise HTTPException(status_code=400, detail="OpenAI API key not configured")
             
-            from openai import OpenAI
+            from emergentintegrations.llm.openai.image_generation import OpenAIImageGeneration
             
-            # Use Emergent proxy for universal key, direct OpenAI for custom key
-            if keys.use_emergent_key:
-                client = OpenAI(
-                    api_key=api_key,
-                    base_url="https://integrations.emergentagent.com/openai/v1"
-                )
-            else:
-                client = OpenAI(api_key=api_key)
-            
-            response = client.images.generate(
-                model="gpt-image-1",
+            image_gen = OpenAIImageGeneration(api_key=api_key)
+            image_bytes_list = await image_gen.generate_images(
                 prompt=request.prompt,
-                size="1024x1024",
-                quality="auto",
-                n=1,
+                model="gpt-image-1",
+                number_of_images=1,
+                quality="medium"
             )
             
-            generation.result_url = response.data[0].url if response.data[0].url else None
-            if not generation.result_url and response.data[0].b64_json:
-                generation.result_data = response.data[0].b64_json
-                generation.result_url = f"data:image/png;base64,{response.data[0].b64_json}"
+            if image_bytes_list:
+                image_b64 = base64.b64encode(image_bytes_list[0]).decode()
+                generation.result_url = f"data:image/png;base64,{image_b64}"
             generation.status = "completed"
             
         elif request.provider == "fal":
