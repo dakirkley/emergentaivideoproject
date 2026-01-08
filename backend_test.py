@@ -191,7 +191,55 @@ class AICreativeStudioTester:
         else:
             self.log_test("API Structure", False, f"Only {accessible_endpoints}/{len(endpoints_to_test)} endpoints accessible")
 
-    def run_all_tests(self):
+    def test_with_auth_token(self):
+        """Test endpoints with provided test session token"""
+        # Set the test session token
+        self.session_token = "test_session_1767801009292"
+        
+        # Test auth/me endpoint with token
+        success, response = self.make_request('GET', '/api/auth/me')
+        if success and 'user_id' in response:
+            self.log_test("Auth Me (With Token)", True, f"Successfully authenticated user: {response.get('email', 'unknown')}")
+        else:
+            self.log_test("Auth Me (With Token)", False, "Authentication failed with test token", response)
+            return False
+        
+        # Test file upload endpoint structure (without actual file)
+        success, response = self.make_request('POST', '/api/generate/upload', expected_status=422)
+        if success:
+            self.log_test("Upload Endpoint Structure", True, "Upload endpoint accessible (expects file)")
+        else:
+            self.log_test("Upload Endpoint Structure", False, "Upload endpoint not accessible", response)
+        
+        # Test avatar endpoint structure
+        success, response = self.make_request('POST', '/api/generate/video/avatar', expected_status=422)
+        if success:
+            self.log_test("Avatar Endpoint Structure", True, "Avatar endpoint accessible (expects form data)")
+        else:
+            self.log_test("Avatar Endpoint Structure", False, "Avatar endpoint not accessible", response)
+        
+        # Test motion control endpoint structure
+        success, response = self.make_request('POST', '/api/generate/video/motion-control', expected_status=422)
+        if success:
+            self.log_test("Motion Control Endpoint Structure", True, "Motion control endpoint accessible (expects form data)")
+        else:
+            self.log_test("Motion Control Endpoint Structure", False, "Motion control endpoint not accessible", response)
+        
+        # Test voice clone endpoint structure
+        success, response = self.make_request('POST', '/api/generate/voice/clone', expected_status=422)
+        if success:
+            self.log_test("Voice Clone Endpoint Structure", True, "Voice clone endpoint accessible (expects form data)")
+        else:
+            self.log_test("Voice Clone Endpoint Structure", False, "Voice clone endpoint not accessible", response)
+        
+        # Test cloned voices list endpoint
+        success, response = self.make_request('GET', '/api/generate/voice/cloned')
+        if success and 'voices' in response:
+            self.log_test("Cloned Voices List", True, f"Retrieved cloned voices list: {len(response['voices'])} voices")
+        else:
+            self.log_test("Cloned Voices List", False, "Failed to get cloned voices list", response)
+        
+        return True
         """Run all backend tests"""
         print("🚀 Starting AI Creative Studio Backend Tests")
         print(f"Testing against: {self.base_url}")
