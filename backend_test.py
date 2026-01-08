@@ -386,7 +386,12 @@ class AICreativeStudioTester:
         
         # Tests with authentication
         print("\n🔐 Testing with authentication...")
-        self.test_with_auth_token()
+        auth_success = self.test_with_auth_token()
+        
+        # Template-specific tests (only if authentication works)
+        if auth_success:
+            print("\n📝 Testing Template functionality...")
+            self.test_templates_endpoints()
         
         # Print summary
         print("=" * 60)
