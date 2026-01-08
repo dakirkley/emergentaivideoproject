@@ -120,7 +120,7 @@ export default function Templates() {
         description: formData.description,
         prompt: formData.prompt,
         type: formData.type,
-        provider: formData.provider || null,
+        provider: formData.provider === "any" ? null : formData.provider,
         category: formData.category || null,
         tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
         is_public: formData.is_public
