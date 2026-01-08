@@ -1378,6 +1378,68 @@ async def delete_template(template_id: str, user: User = Depends(get_current_use
     
     return {"message": "Template deleted"}
 
+@templates_router.post("/{template_id}/favorite")
+async def favorite_template(template_id: str, user: User = Depends(get_current_user)):
+    """Add a template to favorites"""
+    # Verify template exists (system or user template)
+    template_exists = False
+    
+    # Check system templates
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl["template_id"] == template_id:
+            template_exists = True
+            break
+    
+    # Check user templates
+    if not template_exists:
+        template = await db.prompt_templates.find_one({"template_id": template_id})
+        if template:
+            # Check access - must be owner or public
+            if template["user_id"] == user.user_id or template.get("is_public"):
+                template_exists = True
+    
+    if not template_exists:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    # Check if already favorited
+    existing = await db.template_favorites.find_one({
+        "user_id": user.user_id,
+        "template_id": template_id
+    })
+    
+    if existing:
+        return {"message": "Template already in favorites", "is_favorite": True}
+    
+    # Add to favorites
+    await db.template_favorites.insert_one({
+        "user_id": user.user_id,
+        "template_id": template_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    return {"message": "Template added to favorites", "is_favorite": True}
+
+@templates_router.delete("/{template_id}/favorite")
+async def unfavorite_template(template_id: str, user: User = Depends(get_current_user)):
+    """Remove a template from favorites"""
+    result = await db.template_favorites.delete_one({
+        "user_id": user.user_id,
+        "template_id": template_id
+    })
+    
+    return {"message": "Template removed from favorites", "is_favorite": False}
+
+@templates_router.get("/favorites/list")
+async def get_favorite_templates(user: User = Depends(get_current_user)):
+    """Get all favorite template IDs for the user"""
+    favorites = await db.template_favorites.find(
+        {"user_id": user.user_id},
+        {"_id": 0, "template_id": 1, "created_at": 1}
+    ).sort("created_at", -1).to_list(1000)
+    
+    return {"favorites": favorites}
+
+
 @templates_router.post("/{template_id}/use")
 async def use_template(template_id: str, user: User = Depends(get_current_user)):
     """Record template usage and return the template"""
