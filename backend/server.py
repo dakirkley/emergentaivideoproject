@@ -1188,9 +1188,18 @@ async def get_templates(
     type: Optional[str] = None,
     category: Optional[str] = None,
     include_system: bool = True,
+    favorites_only: bool = False,
     user: User = Depends(get_current_user)
 ):
     """Get prompt templates (system + user's custom templates)"""
+    
+    # Get user's favorites
+    user_favorites = await db.template_favorites.find(
+        {"user_id": user.user_id},
+        {"_id": 0, "template_id": 1}
+    ).to_list(1000)
+    favorite_ids = {f["template_id"] for f in user_favorites}
+    
     templates = []
     
     # Add system templates
@@ -1200,7 +1209,10 @@ async def get_templates(
                 continue
             if category and tmpl.get("category") != category:
                 continue
-            templates.append({**tmpl, "user_id": None, "usage_count": 0})
+            template_with_fav = {**tmpl, "user_id": None, "usage_count": 0, "is_favorite": tmpl["template_id"] in favorite_ids}
+            if favorites_only and not template_with_fav["is_favorite"]:
+                continue
+            templates.append(template_with_fav)
     
     # Get user's custom templates
     query = {"user_id": user.user_id}
@@ -1213,22 +1225,29 @@ async def get_templates(
         query, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
     
-    templates.extend(user_templates)
+    for tmpl in user_templates:
+        tmpl["is_favorite"] = tmpl["template_id"] in favorite_ids
+        if favorites_only and not tmpl["is_favorite"]:
+            continue
+        templates.append(tmpl)
     
     # Get public templates from other users
-    public_query = {"is_public": True, "user_id": {"$ne": user.user_id}}
-    if type:
-        public_query["type"] = type
-    if category:
-        public_query["category"] = category
+    if not favorites_only:
+        public_query = {"is_public": True, "user_id": {"$ne": user.user_id}}
+        if type:
+            public_query["type"] = type
+        if category:
+            public_query["category"] = category
+        
+        public_templates = await db.prompt_templates.find(
+            public_query, {"_id": 0}
+        ).sort("usage_count", -1).limit(20).to_list(20)
+        
+        for tmpl in public_templates:
+            tmpl["is_favorite"] = tmpl["template_id"] in favorite_ids
+            templates.append(tmpl)
     
-    public_templates = await db.prompt_templates.find(
-        public_query, {"_id": 0}
-    ).sort("usage_count", -1).limit(20).to_list(20)
-    
-    templates.extend(public_templates)
-    
-    return {"templates": templates}
+    return {"templates": templates, "favorites_count": len(favorite_ids)}
 
 @templates_router.get("/categories")
 async def get_template_categories(user: User = Depends(get_current_user)):
