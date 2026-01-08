@@ -105,6 +105,23 @@ export default function ImageGeneration() {
     }
   };
 
+  const handleCreateVideo = () => {
+    if (!result?.result_url) return;
+    
+    // Navigate to video generation with the image
+    navigate("/generate/video", {
+      state: {
+        sourceImage: {
+          url: result.result_url,
+          prompt: prompt,
+          fromImageGeneration: true
+        }
+      }
+    });
+    
+    toast.success("Image transferred to Video Generation!");
+  };
+
   return (
     <Layout>
       <div className="space-y-8">
