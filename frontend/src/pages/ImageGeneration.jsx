@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import {
 import { Image, Loader2, Download, RefreshCw, Sparkles } from "lucide-react";
 
 export default function ImageGeneration() {
+  const location = useLocation();
   const [prompt, setPrompt] = useState("");
   const [provider, setProvider] = useState("openai");
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,11 @@ export default function ImageGeneration() {
 
   useEffect(() => {
     fetchApiKeys();
-  }, []);
+    // Check for prompt from template navigation
+    if (location.state?.prompt) {
+      setPrompt(location.state.prompt);
+    }
+  }, [location.state]);
 
   const fetchApiKeys = async () => {
     try {
