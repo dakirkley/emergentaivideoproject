@@ -122,13 +122,23 @@ class AICreativeStudioTester:
         endpoints = [
             '/api/generate/image',
             '/api/generate/video', 
-            '/api/generate/voice'
+            '/api/generate/voice',
+            '/api/generate/upload',
+            '/api/generate/video/avatar',
+            '/api/generate/video/motion-control',
+            '/api/generate/voice/clone',
+            '/api/generate/voice/cloned'
         ]
         
         for endpoint in endpoints:
-            success, response = self.make_request('POST', endpoint, 
-                                                data={"prompt": "test"}, 
-                                                expected_status=401)
+            if endpoint == '/api/generate/voice/cloned':
+                # GET endpoint
+                success, response = self.make_request('GET', endpoint, expected_status=401)
+            else:
+                # POST endpoints
+                success, response = self.make_request('POST', endpoint, 
+                                                    data={"prompt": "test"}, 
+                                                    expected_status=401)
             
             endpoint_name = endpoint.split('/')[-1].title()
             if success:
