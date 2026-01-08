@@ -376,6 +376,141 @@ class AICreativeStudioTester:
         else:
             self.log_test("Create Invalid Template", False, "Should validate required fields", response)
 
+    def test_favorites_functionality(self):
+        """Test template favorites functionality"""
+        if not self.session_token:
+            self.log_test("Favorites Tests", False, "No authentication token available")
+            return
+        
+        # Get available templates first
+        success, response = self.make_request('GET', '/api/templates')
+        if not success or 'templates' not in response:
+            self.log_test("Favorites Setup", False, "Cannot get templates for favorites testing", response)
+            return
+        
+        templates = response['templates']
+        if not templates:
+            self.log_test("Favorites Setup", False, "No templates available for favorites testing")
+            return
+        
+        # Use the first system template for testing
+        test_template = None
+        for template in templates:
+            if template.get('is_system'):
+                test_template = template
+                break
+        
+        if not test_template:
+            self.log_test("Favorites Setup", False, "No system template found for favorites testing")
+            return
+        
+        template_id = test_template['template_id']
+        initial_favorite_status = test_template.get('is_favorite', False)
+        
+        # Test adding template to favorites
+        success, response = self.make_request('POST', f'/api/templates/{template_id}/favorite')
+        if success and response.get('is_favorite') == True:
+            self.log_test("Add Template to Favorites", True, f"Successfully added template {template_id} to favorites")
+        else:
+            self.log_test("Add Template to Favorites", False, "Failed to add template to favorites", response)
+            return
+        
+        # Verify template is now marked as favorite
+        success, response = self.make_request('GET', '/api/templates')
+        if success and 'templates' in response:
+            updated_templates = response['templates']
+            favorited_template = next((t for t in updated_templates if t['template_id'] == template_id), None)
+            
+            if favorited_template and favorited_template.get('is_favorite') == True:
+                self.log_test("Verify Template Favorited", True, "Template correctly marked as favorite")
+                
+                # Check favorites count increased
+                new_favorites_count = response.get('favorites_count', 0)
+                self.log_test("Favorites Count Updated", True, f"Favorites count: {new_favorites_count}")
+            else:
+                self.log_test("Verify Template Favorited", False, "Template not marked as favorite after adding")
+        else:
+            self.log_test("Verify Template Favorited", False, "Failed to verify favorite status", response)
+        
+        # Test getting favorites list
+        success, response = self.make_request('GET', '/api/templates/favorites/list')
+        if success and 'favorites' in response:
+            favorites_list = response['favorites']
+            has_our_template = any(f['template_id'] == template_id for f in favorites_list)
+            
+            if has_our_template:
+                self.log_test("Get Favorites List", True, f"Found {len(favorites_list)} favorites including our test template")
+            else:
+                self.log_test("Get Favorites List", False, "Our test template not found in favorites list")
+        else:
+            self.log_test("Get Favorites List", False, "Failed to get favorites list", response)
+        
+        # Test filtering templates to show only favorites
+        success, response = self.make_request('GET', '/api/templates?favorites_only=true')
+        if success and 'templates' in response:
+            favorite_templates = response['templates']
+            all_are_favorites = all(t.get('is_favorite') == True for t in favorite_templates)
+            has_our_template = any(t['template_id'] == template_id for t in favorite_templates)
+            
+            if all_are_favorites and has_our_template:
+                self.log_test("Filter Favorites Only", True, f"Found {len(favorite_templates)} favorite templates")
+            else:
+                self.log_test("Filter Favorites Only", False, "Favorites filtering not working correctly")
+        else:
+            self.log_test("Filter Favorites Only", False, "Failed to filter favorites only", response)
+        
+        # Test removing template from favorites
+        success, response = self.make_request('DELETE', f'/api/templates/{template_id}/favorite')
+        if success and response.get('is_favorite') == False:
+            self.log_test("Remove Template from Favorites", True, f"Successfully removed template {template_id} from favorites")
+        else:
+            self.log_test("Remove Template from Favorites", False, "Failed to remove template from favorites", response)
+        
+        # Verify template is no longer favorite
+        success, response = self.make_request('GET', '/api/templates')
+        if success and 'templates' in response:
+            updated_templates = response['templates']
+            unfavorited_template = next((t for t in updated_templates if t['template_id'] == template_id), None)
+            
+            if unfavorited_template and unfavorited_template.get('is_favorite') == False:
+                self.log_test("Verify Template Unfavorited", True, "Template correctly removed from favorites")
+                
+                # Check favorites count decreased
+                final_favorites_count = response.get('favorites_count', 0)
+                self.log_test("Favorites Count Decreased", True, f"Favorites count: {final_favorites_count}")
+            else:
+                self.log_test("Verify Template Unfavorited", False, "Template still marked as favorite after removal")
+        else:
+            self.log_test("Verify Template Unfavorited", False, "Failed to verify unfavorite status", response)
+        
+        # Test error cases for favorites
+        # Try to favorite non-existent template
+        success, response = self.make_request('POST', '/api/templates/nonexistent/favorite', expected_status=404)
+        if success:
+            self.log_test("Favorite Non-existent Template", True, "Correctly returns 404 for non-existent template")
+        else:
+            self.log_test("Favorite Non-existent Template", False, "Should return 404 for non-existent template", response)
+        
+        # Try to unfavorite non-existent template (should succeed silently)
+        success, response = self.make_request('DELETE', '/api/templates/nonexistent/favorite')
+        if success:
+            self.log_test("Unfavorite Non-existent Template", True, "Unfavorite non-existent template handled gracefully")
+        else:
+            self.log_test("Unfavorite Non-existent Template", False, "Unfavorite non-existent template should succeed", response)
+        
+        # Test favoriting the same template twice (should be idempotent)
+        success, response = self.make_request('POST', f'/api/templates/{template_id}/favorite')
+        if success:
+            success2, response2 = self.make_request('POST', f'/api/templates/{template_id}/favorite')
+            if success2:
+                self.log_test("Favorite Template Twice", True, "Favoriting same template twice handled correctly")
+                # Clean up - remove the favorite
+                self.make_request('DELETE', f'/api/templates/{template_id}/favorite')
+            else:
+                self.log_test("Favorite Template Twice", False, "Failed to handle duplicate favorite", response2)
+        else:
+            self.log_test("Favorite Template Twice", False, "Failed initial favorite for duplicate test", response)
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting AI Creative Studio Backend Tests")
