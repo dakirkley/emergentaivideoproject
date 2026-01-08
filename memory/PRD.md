@@ -56,6 +56,9 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [x] Search and filter templates
 - [x] Use template to auto-fill prompts in generation pages
 - [x] Copy prompt to clipboard
+- [x] **Favorites/Bookmarks** - Heart icon to favorite any template
+- [x] **Favorites Tab** - Dedicated tab to view all favorited templates
+- [x] **Favorites Count** - Shows number of favorited templates
 
 ### UI/UX
 - [x] Electric Orange theme with dark mode default
@@ -79,7 +82,6 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [ ] Kling AI Lip Sync feature
 - [ ] Batch file upload for voice cloning
 - [ ] Progress indicator for long-running generations
-- [ ] Template favorites/bookmarks
 
 ### P2 - Medium Priority
 - [ ] Generation history pagination
