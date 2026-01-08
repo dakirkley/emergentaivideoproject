@@ -179,6 +179,28 @@ export default function Templates() {
     }
   };
 
+  const handleToggleFavorite = async (template) => {
+    try {
+      if (template.is_favorite) {
+        await axios.delete(`${API}/templates/${template.template_id}/favorite`, { withCredentials: true });
+        toast.success("Removed from favorites");
+      } else {
+        await axios.post(`${API}/templates/${template.template_id}/favorite`, {}, { withCredentials: true });
+        toast.success("Added to favorites");
+      }
+      
+      // Update local state
+      setTemplates(prev => prev.map(t => 
+        t.template_id === template.template_id 
+          ? { ...t, is_favorite: !t.is_favorite }
+          : t
+      ));
+      setFavoritesCount(prev => template.is_favorite ? prev - 1 : prev + 1);
+    } catch (error) {
+      toast.error("Failed to update favorites");
+    }
+  };
+
   const handleUseTemplate = async (template) => {
     try {
       await axios.post(`${API}/templates/${template.template_id}/use`, {}, { withCredentials: true });
