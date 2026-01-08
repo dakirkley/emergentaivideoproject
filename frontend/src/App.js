@@ -12,6 +12,7 @@ import VideoGeneration from "./pages/VideoGeneration";
 import VoiceGeneration from "./pages/VoiceGeneration";
 import Gallery from "./pages/Gallery";
 import Settings from "./pages/Settings";
+import Templates from "./pages/Templates";
 
 // Context
 const ThemeContext = createContext();
@@ -134,6 +135,7 @@ function AppRouter() {
       <Route path="/generate/video" element={<ProtectedRoute><VideoGeneration /></ProtectedRoute>} />
       <Route path="/generate/voice" element={<ProtectedRoute><VoiceGeneration /></ProtectedRoute>} />
       <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
+      <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
