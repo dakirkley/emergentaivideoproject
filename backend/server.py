@@ -1404,6 +1404,7 @@ app.include_router(auth_router)
 app.include_router(generation_router)
 app.include_router(gallery_router)
 app.include_router(settings_router)
+app.include_router(templates_router)
 
 # CORS Middleware
 app.add_middleware(
