@@ -240,6 +240,132 @@ class AICreativeStudioTester:
             self.log_test("Cloned Voices List", False, "Failed to get cloned voices list", response)
         
         return True
+
+    def test_templates_endpoints(self):
+        """Test all template-related endpoints"""
+        if not self.session_token:
+            self.log_test("Templates Tests", False, "No authentication token available")
+            return
+        
+        # Test GET /api/templates (get all templates)
+        success, response = self.make_request('GET', '/api/templates')
+        if success and 'templates' in response:
+            templates = response['templates']
+            system_templates = [t for t in templates if t.get('is_system')]
+            self.log_test("Get All Templates", True, f"Retrieved {len(templates)} templates ({len(system_templates)} system templates)")
+            
+            # Verify system templates exist
+            if len(system_templates) >= 10:  # Should have 13 system templates
+                self.log_test("System Templates Present", True, f"Found {len(system_templates)} system templates")
+            else:
+                self.log_test("System Templates Present", False, f"Expected 13+ system templates, found {len(system_templates)}")
+        else:
+            self.log_test("Get All Templates", False, "Failed to retrieve templates", response)
+            return
+        
+        # Test GET /api/templates/categories
+        success, response = self.make_request('GET', '/api/templates/categories')
+        if success and 'categories' in response:
+            categories = response['categories']
+            self.log_test("Get Template Categories", True, f"Retrieved {len(categories)} categories: {categories}")
+        else:
+            self.log_test("Get Template Categories", False, "Failed to retrieve categories", response)
+        
+        # Test filtering by type
+        for template_type in ['image', 'video', 'voice']:
+            success, response = self.make_request('GET', f'/api/templates?type={template_type}')
+            if success and 'templates' in response:
+                filtered_templates = response['templates']
+                type_match = all(t.get('type') == template_type for t in filtered_templates)
+                if type_match:
+                    self.log_test(f"Filter Templates by Type ({template_type})", True, f"Found {len(filtered_templates)} {template_type} templates")
+                else:
+                    self.log_test(f"Filter Templates by Type ({template_type})", False, "Type filtering not working correctly")
+            else:
+                self.log_test(f"Filter Templates by Type ({template_type})", False, f"Failed to filter by {template_type}", response)
+        
+        # Test creating a new template
+        test_template = {
+            "name": "Test Template",
+            "description": "A test template for automated testing",
+            "prompt": "This is a test prompt for automated testing purposes",
+            "type": "image",
+            "provider": "openai",
+            "category": "Test",
+            "tags": ["test", "automation"],
+            "is_public": False
+        }
+        
+        success, response = self.make_request('POST', '/api/templates', data=test_template, expected_status=200)
+        created_template_id = None
+        if success and 'template_id' in response:
+            created_template_id = response['template_id']
+            self.log_test("Create Template", True, f"Created template with ID: {created_template_id}")
+        else:
+            self.log_test("Create Template", False, "Failed to create template", response)
+        
+        # Test getting specific template
+        if created_template_id:
+            success, response = self.make_request('GET', f'/api/templates/{created_template_id}')
+            if success and response.get('template_id') == created_template_id:
+                self.log_test("Get Specific Template", True, f"Retrieved template: {response.get('name')}")
+            else:
+                self.log_test("Get Specific Template", False, "Failed to retrieve specific template", response)
+            
+            # Test updating template
+            update_data = {
+                "name": "Updated Test Template",
+                "description": "Updated description",
+                "category": "Updated Test"
+            }
+            success, response = self.make_request('PUT', f'/api/templates/{created_template_id}', data=update_data)
+            if success:
+                self.log_test("Update Template", True, "Successfully updated template")
+            else:
+                self.log_test("Update Template", False, "Failed to update template", response)
+            
+            # Test using template (record usage)
+            success, response = self.make_request('POST', f'/api/templates/{created_template_id}/use')
+            if success and 'prompt' in response:
+                self.log_test("Use Template", True, f"Template usage recorded, prompt returned")
+            else:
+                self.log_test("Use Template", False, "Failed to use template", response)
+            
+            # Test deleting template
+            success, response = self.make_request('DELETE', f'/api/templates/{created_template_id}')
+            if success:
+                self.log_test("Delete Template", True, "Successfully deleted template")
+            else:
+                self.log_test("Delete Template", False, "Failed to delete template", response)
+        
+        # Test using system template
+        success, response = self.make_request('GET', '/api/templates')
+        if success and 'templates' in response:
+            system_templates = [t for t in response['templates'] if t.get('is_system')]
+            if system_templates:
+                system_template_id = system_templates[0]['template_id']
+                success, response = self.make_request('POST', f'/api/templates/{system_template_id}/use')
+                if success and 'prompt' in response:
+                    self.log_test("Use System Template", True, "Successfully used system template")
+                else:
+                    self.log_test("Use System Template", False, "Failed to use system template", response)
+        
+        # Test error cases
+        # Try to get non-existent template
+        success, response = self.make_request('GET', '/api/templates/nonexistent', expected_status=404)
+        if success:
+            self.log_test("Get Non-existent Template", True, "Correctly returns 404 for non-existent template")
+        else:
+            self.log_test("Get Non-existent Template", False, "Should return 404 for non-existent template", response)
+        
+        # Try to create template with missing required fields
+        invalid_template = {"name": ""}  # Missing prompt and other required fields
+        success, response = self.make_request('POST', '/api/templates', data=invalid_template, expected_status=422)
+        if success:
+            self.log_test("Create Invalid Template", True, "Correctly validates required fields")
+        else:
+            self.log_test("Create Invalid Template", False, "Should validate required fields", response)
+
     def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting AI Creative Studio Backend Tests")
