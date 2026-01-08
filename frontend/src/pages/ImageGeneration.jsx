@@ -20,6 +20,7 @@ import { Image, Loader2, Download, RefreshCw, Sparkles, Video, ArrowRight } from
 
 export default function ImageGeneration() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [provider, setProvider] = useState("openai");
   const [loading, setLoading] = useState(false);
