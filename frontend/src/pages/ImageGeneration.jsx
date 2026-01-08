@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { Image, Loader2, Download, RefreshCw, Sparkles } from "lucide-react";
+import { Image, Loader2, Download, RefreshCw, Sparkles, Video, ArrowRight } from "lucide-react";
 
 export default function ImageGeneration() {
   const location = useLocation();
