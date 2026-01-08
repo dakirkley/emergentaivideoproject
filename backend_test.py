@@ -537,6 +537,9 @@ class AICreativeStudioTester:
         if auth_success:
             print("\n📝 Testing Template functionality...")
             self.test_templates_endpoints()
+            
+            print("\n❤️  Testing Favorites functionality...")
+            self.test_favorites_functionality()
         
         # Print summary
         print("=" * 60)
