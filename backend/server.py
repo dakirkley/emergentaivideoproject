@@ -79,6 +79,39 @@ class GenerationRequest(BaseModel):
     voice_id: Optional[str] = None
     negative_prompt: Optional[str] = None
 
+class PromptTemplate(BaseModel):
+    template_id: str = Field(default_factory=lambda: f"tmpl_{uuid.uuid4().hex[:12]}")
+    user_id: Optional[str] = None  # None for system templates
+    name: str
+    description: Optional[str] = None
+    prompt: str
+    type: Literal["image", "video", "voice"]
+    provider: Optional[str] = None
+    category: Optional[str] = None
+    tags: List[str] = []
+    is_public: bool = False
+    is_system: bool = False
+    usage_count: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PromptTemplateCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    prompt: str
+    type: Literal["image", "video", "voice"]
+    provider: Optional[str] = None
+    category: Optional[str] = None
+    tags: List[str] = []
+    is_public: bool = False
+
+class PromptTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    prompt: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = None
+    is_public: Optional[bool] = None
+
 class Generation(BaseModel):
     generation_id: str = Field(default_factory=lambda: f"gen_{uuid.uuid4().hex[:12]}")
     user_id: str
