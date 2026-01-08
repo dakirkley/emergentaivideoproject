@@ -283,6 +283,7 @@ export default function Templates() {
 
   const myTemplates = filteredTemplates.filter(t => t.user_id && !t.is_system);
   const systemTemplates = filteredTemplates.filter(t => t.is_system);
+  const favoriteTemplates = filteredTemplates.filter(t => t.is_favorite);
   const communityTemplates = filteredTemplates.filter(t => t.is_public && !t.is_system && !t.user_id);
 
   return (
