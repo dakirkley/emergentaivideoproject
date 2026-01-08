@@ -41,6 +41,7 @@ export default function VideoGeneration() {
   const [apiKeysStatus, setApiKeysStatus] = useState(null);
   const [sourceImageFromGen, setSourceImageFromGen] = useState(null);
   const pollingRef = useRef(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     const loadApiKeys = async () => {
@@ -52,6 +53,15 @@ export default function VideoGeneration() {
       }
     };
     loadApiKeys();
+    
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
+  // Handle navigation state separately to avoid re-renders
+  useEffect(() => {
+    if (initializedRef.current) return;
     
     // Check for prompt from template navigation
     if (location.state?.prompt) {
@@ -72,9 +82,7 @@ export default function VideoGeneration() {
       }
     }
     
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
+    initializedRef.current = true;
   }, [location.state]);
 
   const canGenerate = () => {
