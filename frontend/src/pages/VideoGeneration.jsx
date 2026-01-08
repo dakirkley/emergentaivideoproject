@@ -39,6 +39,7 @@ export default function VideoGeneration() {
   const [result, setResult] = useState(null);
   const [pollingId, setPollingId] = useState(null);
   const [apiKeysStatus, setApiKeysStatus] = useState(null);
+  const [sourceImageFromGen, setSourceImageFromGen] = useState(null);
   const pollingRef = useRef(null);
 
   useEffect(() => {
@@ -55,6 +56,20 @@ export default function VideoGeneration() {
     // Check for prompt from template navigation
     if (location.state?.prompt) {
       setPrompt(location.state.prompt);
+    }
+    
+    // Check for source image from Image Generation
+    if (location.state?.sourceImage) {
+      const { url, prompt: imgPrompt, fromImageGeneration } = location.state.sourceImage;
+      setSourceImageFromGen({ url, prompt: imgPrompt });
+      setUploadedImage({ url, name: "Generated Image", type: "image/png" });
+      if (imgPrompt && !location.state?.prompt) {
+        setPrompt(imgPrompt);
+      }
+      // Show a toast notification
+      if (fromImageGeneration) {
+        toast.success("Image loaded! Ready to create video.");
+      }
     }
     
     return () => {
