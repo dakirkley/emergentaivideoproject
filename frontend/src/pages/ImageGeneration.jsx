@@ -258,6 +258,28 @@ export default function ImageGeneration() {
                   </div>
                 )}
               </div>
+
+              {/* Create Video Button */}
+              {result?.result_url && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="pt-2"
+                >
+                  <Button
+                    onClick={handleCreateVideo}
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-full"
+                    data-testid="create-video-btn"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    Create Video from This Image
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Use this image as the starting frame for video generation
+                  </p>
+                </motion.div>
+              )}
             </div>
           </Card>
         </div>
