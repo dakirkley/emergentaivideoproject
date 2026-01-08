@@ -92,6 +92,7 @@ export default function Templates() {
       
       const res = await axios.get(`${API}/templates?${params.toString()}`, { withCredentials: true });
       setTemplates(res.data.templates || []);
+      setFavoritesCount(res.data.favorites_count || 0);
     } catch (error) {
       console.error("Error fetching templates:", error);
       toast.error("Failed to load templates");
