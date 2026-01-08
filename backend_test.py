@@ -252,13 +252,23 @@ class AICreativeStudioTester:
         if success and 'templates' in response:
             templates = response['templates']
             system_templates = [t for t in templates if t.get('is_system')]
+            favorites_count = response.get('favorites_count', 0)
+            
             self.log_test("Get All Templates", True, f"Retrieved {len(templates)} templates ({len(system_templates)} system templates)")
+            self.log_test("Templates Include Favorites Count", True, f"Favorites count: {favorites_count}")
             
             # Verify system templates exist
             if len(system_templates) >= 10:  # Should have 13 system templates
                 self.log_test("System Templates Present", True, f"Found {len(system_templates)} system templates")
             else:
                 self.log_test("System Templates Present", False, f"Expected 13+ system templates, found {len(system_templates)}")
+            
+            # Verify is_favorite field is present in templates
+            has_favorite_field = all('is_favorite' in t for t in templates)
+            if has_favorite_field:
+                self.log_test("Templates Include is_favorite Field", True, "All templates have is_favorite field")
+            else:
+                self.log_test("Templates Include is_favorite Field", False, "Some templates missing is_favorite field")
         else:
             self.log_test("Get All Templates", False, "Failed to retrieve templates", response)
             return
