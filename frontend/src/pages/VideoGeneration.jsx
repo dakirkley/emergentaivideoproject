@@ -39,17 +39,16 @@ export default function VideoGeneration() {
   const [apiKeysStatus, setApiKeysStatus] = useState(null);
   const pollingRef = useRef(null);
 
-  const fetchApiKeys = async () => {
-    try {
-      const res = await axios.get(`${API}/settings/api-keys`, { withCredentials: true });
-      setApiKeysStatus(res.data);
-    } catch (error) {
-      console.error("Error fetching API keys:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchApiKeys();
+    const loadApiKeys = async () => {
+      try {
+        const res = await axios.get(`${API}/settings/api-keys`, { withCredentials: true });
+        setApiKeysStatus(res.data);
+      } catch (error) {
+        console.error("Error fetching API keys:", error);
+      }
+    };
+    loadApiKeys();
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
