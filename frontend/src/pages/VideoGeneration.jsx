@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import {
 import { Video, Loader2, Download, Sparkles, User, Move } from "lucide-react";
 
 export default function VideoGeneration() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("text-to-video");
   const [prompt, setPrompt] = useState("");
   const [provider, setProvider] = useState("kling");
@@ -49,10 +51,16 @@ export default function VideoGeneration() {
       }
     };
     loadApiKeys();
+    
+    // Check for prompt from template navigation
+    if (location.state?.prompt) {
+      setPrompt(location.state.prompt);
+    }
+    
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, []);
+  }, [location.state]);
 
   const canGenerate = () => {
     if (provider === "kling") return apiKeysStatus?.has_kling_key;
