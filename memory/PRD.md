@@ -60,6 +60,13 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [x] **Favorites Tab** - Dedicated tab to view all favorited templates
 - [x] **Favorites Count** - Shows number of favorited templates
 
+### NEW - Image to Video Workflow (Jan 8, 2026)
+- [x] "Create Video from This Image" button on generated images
+- [x] Seamless transfer of image URL to Video Generation
+- [x] Prompt carries over from image to video generation
+- [x] Visual indicator showing "From Image Generation" badge
+- [x] Option to clear loaded image and upload different one
+
 ### UI/UX
 - [x] Electric Orange theme with dark mode default
 - [x] Light/Dark theme toggle
