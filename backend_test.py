@@ -240,6 +240,7 @@ class AICreativeStudioTester:
             self.log_test("Cloned Voices List", False, "Failed to get cloned voices list", response)
         
         return True
+    def run_all_tests(self):
         """Run all backend tests"""
         print("🚀 Starting AI Creative Studio Backend Tests")
         print(f"Testing against: {self.base_url}")
@@ -256,6 +257,10 @@ class AICreativeStudioTester:
         self.test_settings_api_keys_without_auth()
         self.test_gallery_without_auth()
         self.test_generation_endpoints_without_auth()
+        
+        # Tests with authentication
+        print("\n🔐 Testing with authentication...")
+        self.test_with_auth_token()
         
         # Print summary
         print("=" * 60)
