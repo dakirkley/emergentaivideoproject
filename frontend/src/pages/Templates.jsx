@@ -420,6 +420,7 @@ export default function Templates() {
                   onCopy={handleCopyPrompt}
                   onEdit={openEditDialog}
                   onDelete={handleDeleteTemplate}
+                  onToggleFavorite={handleToggleFavorite}
                   getTypeIcon={getTypeIcon}
                   getTypeColor={getTypeColor}
                   showActions
@@ -434,6 +435,7 @@ export default function Templates() {
                 onCopy={handleCopyPrompt}
                 onEdit={openEditDialog}
                 onDelete={handleDeleteTemplate}
+                onToggleFavorite={handleToggleFavorite}
                 getTypeIcon={getTypeIcon}
                 getTypeColor={getTypeColor}
               />
