@@ -610,13 +610,346 @@ async def get_available_voices(user: User = Depends(get_current_user)):
     try:
         from elevenlabs import ElevenLabs
         eleven_client = ElevenLabs(api_key=keys.elevenlabs_api_key)
-        voices_response = await eleven_client.voices.get_all()
+        voices_response = eleven_client.voices.get_all()
         
         voices = [{"voice_id": v.voice_id, "name": v.name} for v in voices_response.voices]
         return {"voices": voices}
     except Exception as e:
         logger.error(f"Error fetching voices: {e}")
         return {"voices": []}
+
+# ==================== FILE UPLOAD ====================
+
+UPLOAD_DIR = Path("/tmp/uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+@generation_router.post("/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user)
+):
+    """Upload a file (image or audio) and return a URL"""
+    
+    # Validate file type
+    allowed_image_types = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    allowed_audio_types = ["audio/mpeg", "audio/wav", "audio/mp3", "audio/ogg", "audio/webm"]
+    allowed_video_types = ["video/mp4", "video/webm", "video/quicktime"]
+    
+    content_type = file.content_type or ""
+    
+    if content_type not in allowed_image_types + allowed_audio_types + allowed_video_types:
+        raise HTTPException(status_code=400, detail=f"File type not allowed: {content_type}")
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if file.filename else "bin"
+    filename = f"{user.user_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOAD_DIR / filename
+    
+    # Save file
+    content = await file.read()
+    
+    # Check file size (max 50MB)
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 50MB)")
+    
+    async with aiofiles.open(filepath, "wb") as f:
+        await f.write(content)
+    
+    # Store file info in DB
+    file_doc = {
+        "file_id": f"file_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "filename": filename,
+        "original_name": file.filename,
+        "content_type": content_type,
+        "size": len(content),
+        "filepath": str(filepath),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.uploads.insert_one(file_doc)
+    
+    # Convert to base64 data URL for immediate use
+    b64_content = base64.b64encode(content).decode()
+    data_url = f"data:{content_type};base64,{b64_content}"
+    
+    return {
+        "file_id": file_doc["file_id"],
+        "url": data_url,
+        "filename": file.filename,
+        "content_type": content_type,
+        "size": len(content)
+    }
+
+# ==================== KLING AI ADVANCED FEATURES ====================
+
+@generation_router.post("/video/avatar")
+async def generate_avatar_video(
+    prompt: str = Form(...),
+    audio_file: UploadFile = File(None),
+    audio_url: str = Form(None),
+    avatar_image_url: str = Form(None),
+    avatar_image_file: UploadFile = File(None),
+    user: User = Depends(get_current_user)
+):
+    """Generate avatar video using Kling AI Avatar"""
+    keys = await get_user_api_keys(user.user_id)
+    
+    if not keys.kling_api_key:
+        raise HTTPException(status_code=400, detail="Kling AI API key not configured")
+    
+    generation = Generation(
+        user_id=user.user_id,
+        type="video",
+        provider="kling",
+        model="kling-avatar",
+        prompt=prompt
+    )
+    
+    try:
+        # Process avatar image
+        avatar_url = avatar_image_url
+        if avatar_image_file:
+            content = await avatar_image_file.read()
+            avatar_url = f"data:image/png;base64,{base64.b64encode(content).decode()}"
+        
+        # Process audio
+        audio_input_url = audio_url
+        if audio_file:
+            content = await audio_file.read()
+            audio_input_url = f"data:audio/mpeg;base64,{base64.b64encode(content).decode()}"
+        
+        payload = {
+            "model": "kling/v1-5-avatar",
+            "input": {
+                "prompt": prompt
+            }
+        }
+        
+        if avatar_url:
+            payload["input"]["image_url"] = avatar_url
+        if audio_input_url:
+            payload["input"]["audio_url"] = audio_input_url
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.kie.ai/api/v1/jobs/createTask",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {keys.kling_api_key}",
+                    "Content-Type": "application/json"
+                },
+                timeout=60.0
+            )
+            data = response.json()
+            
+            if data.get("code") != 200:
+                raise Exception(data.get("msg", "Kling Avatar API error"))
+            
+            task_id = data.get("data", {}).get("taskId")
+            generation.metadata = {"kling_task_id": task_id, "type": "avatar"}
+            generation.status = "processing"
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Avatar generation error: {e}")
+        generation.status = "failed"
+        generation.error_message = str(e)
+    
+    gen_doc = generation.model_dump()
+    gen_doc["created_at"] = gen_doc["created_at"].isoformat()
+    await db.generations.insert_one(gen_doc)
+    
+    if generation.status == "failed":
+        raise HTTPException(status_code=500, detail=generation.error_message)
+    
+    return {
+        "generation_id": generation.generation_id,
+        "status": generation.status,
+        "metadata": generation.metadata
+    }
+
+@generation_router.post("/video/motion-control")
+async def generate_motion_control_video(
+    prompt: str = Form(...),
+    image_file: UploadFile = File(None),
+    image_url: str = Form(None),
+    reference_video_file: UploadFile = File(None),
+    reference_video_url: str = Form(None),
+    character_orientation: str = Form("image"),
+    user: User = Depends(get_current_user)
+):
+    """Generate video with motion control using Kling AI"""
+    keys = await get_user_api_keys(user.user_id)
+    
+    if not keys.kling_api_key:
+        raise HTTPException(status_code=400, detail="Kling AI API key not configured")
+    
+    generation = Generation(
+        user_id=user.user_id,
+        type="video",
+        provider="kling",
+        model="kling-motion-control",
+        prompt=prompt
+    )
+    
+    try:
+        # Process source image
+        source_image_url = image_url
+        if image_file:
+            content = await image_file.read()
+            source_image_url = f"data:image/png;base64,{base64.b64encode(content).decode()}"
+        
+        if not source_image_url:
+            raise HTTPException(status_code=400, detail="Source image is required for motion control")
+        
+        # Process reference video
+        ref_video_url = reference_video_url
+        if reference_video_file:
+            content = await reference_video_file.read()
+            ref_video_url = f"data:video/mp4;base64,{base64.b64encode(content).decode()}"
+        
+        if not ref_video_url:
+            raise HTTPException(status_code=400, detail="Reference video is required for motion control")
+        
+        payload = {
+            "model": "kling/v2-6-motion-control",
+            "input": {
+                "prompt": prompt,
+                "image_url": source_image_url,
+                "reference_video_url": ref_video_url,
+                "character_orientation": character_orientation
+            }
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.kie.ai/api/v1/jobs/createTask",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {keys.kling_api_key}",
+                    "Content-Type": "application/json"
+                },
+                timeout=60.0
+            )
+            data = response.json()
+            
+            if data.get("code") != 200:
+                raise Exception(data.get("msg", "Kling Motion Control API error"))
+            
+            task_id = data.get("data", {}).get("taskId")
+            generation.metadata = {"kling_task_id": task_id, "type": "motion-control"}
+            generation.status = "processing"
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Motion control generation error: {e}")
+        generation.status = "failed"
+        generation.error_message = str(e)
+    
+    gen_doc = generation.model_dump()
+    gen_doc["created_at"] = gen_doc["created_at"].isoformat()
+    await db.generations.insert_one(gen_doc)
+    
+    if generation.status == "failed":
+        raise HTTPException(status_code=500, detail=generation.error_message)
+    
+    return {
+        "generation_id": generation.generation_id,
+        "status": generation.status,
+        "metadata": generation.metadata
+    }
+
+# ==================== VOICE CLONING ====================
+
+@generation_router.post("/voice/clone")
+async def clone_voice(
+    voice_name: str = Form(...),
+    description: str = Form(""),
+    audio_files: List[UploadFile] = File(...),
+    user: User = Depends(get_current_user)
+):
+    """Clone a voice using ElevenLabs IVC (Instant Voice Cloning)"""
+    keys = await get_user_api_keys(user.user_id)
+    
+    if not keys.elevenlabs_api_key:
+        raise HTTPException(status_code=400, detail="ElevenLabs API key not configured")
+    
+    try:
+        from elevenlabs import ElevenLabs
+        
+        eleven_client = ElevenLabs(api_key=keys.elevenlabs_api_key)
+        
+        # Process uploaded audio files
+        files_data = []
+        for audio_file in audio_files:
+            content = await audio_file.read()
+            files_data.append((audio_file.filename, content))
+        
+        # Clone the voice using ElevenLabs IVC
+        voice = eleven_client.clone(
+            name=voice_name,
+            description=description or f"Cloned voice for {user.email}",
+            files=files_data
+        )
+        
+        # Store cloned voice info
+        voice_doc = {
+            "voice_id": voice.voice_id,
+            "user_id": user.user_id,
+            "name": voice_name,
+            "description": description,
+            "provider": "elevenlabs",
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.cloned_voices.insert_one(voice_doc)
+        
+        return {
+            "voice_id": voice.voice_id,
+            "name": voice_name,
+            "status": "created"
+        }
+        
+    except Exception as e:
+        logger.error(f"Voice cloning error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@generation_router.get("/voice/cloned")
+async def get_cloned_voices(user: User = Depends(get_current_user)):
+    """Get user's cloned voices"""
+    voices = await db.cloned_voices.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    return {"voices": voices}
+
+@generation_router.delete("/voice/cloned/{voice_id}")
+async def delete_cloned_voice(voice_id: str, user: User = Depends(get_current_user)):
+    """Delete a cloned voice"""
+    keys = await get_user_api_keys(user.user_id)
+    
+    # Verify ownership
+    voice_doc = await db.cloned_voices.find_one(
+        {"voice_id": voice_id, "user_id": user.user_id}
+    )
+    
+    if not voice_doc:
+        raise HTTPException(status_code=404, detail="Voice not found")
+    
+    try:
+        if keys.elevenlabs_api_key:
+            from elevenlabs import ElevenLabs
+            eleven_client = ElevenLabs(api_key=keys.elevenlabs_api_key)
+            eleven_client.voices.delete(voice_id)
+    except Exception as e:
+        logger.warning(f"Could not delete voice from ElevenLabs: {e}")
+    
+    await db.cloned_voices.delete_one({"voice_id": voice_id})
+    
+    return {"message": "Voice deleted"}
+
 
 # ==================== GALLERY ROUTES ====================
 
