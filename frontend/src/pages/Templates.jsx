@@ -622,7 +622,7 @@ function TemplateForm({ formData, setFormData, categories, isEdit = false }) {
 }
 
 // Template Grid Component
-function TemplateGrid({ templates, onUse, onCopy, onEdit, onDelete, getTypeIcon, getTypeColor, showActions = false }) {
+function TemplateGrid({ templates, onUse, onCopy, onEdit, onDelete, onToggleFavorite, getTypeIcon, getTypeColor, showActions = false }) {
   if (templates.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -653,6 +653,17 @@ function TemplateGrid({ templates, onUse, onCopy, onEdit, onDelete, getTypeIcon,
                     <TypeIcon className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex items-center gap-1">
+                    {/* Favorite Button */}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 ${template.is_favorite ? 'text-red-500' : 'text-muted-foreground hover:text-red-500'}`}
+                      onClick={() => onToggleFavorite(template)}
+                      data-testid={`favorite-${template.template_id}`}
+                    >
+                      <Heart className={`w-4 h-4 ${template.is_favorite ? 'fill-current' : ''}`} />
+                    </Button>
+                    
                     {template.is_system && (
                       <Badge variant="secondary" className="text-xs">
                         <Star className="w-3 h-3 mr-1" />
