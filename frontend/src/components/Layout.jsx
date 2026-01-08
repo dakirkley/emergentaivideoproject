@@ -18,6 +18,7 @@ import {
   Video,
   Mic,
   FolderOpen,
+  BookOpen,
   Settings,
   LogOut,
   Moon,
@@ -32,6 +33,7 @@ const navItems = [
   { icon: Video, label: "Video", href: "/generate/video" },
   { icon: Mic, label: "Voice", href: "/generate/voice" },
   { icon: FolderOpen, label: "Gallery", href: "/gallery" },
+  { icon: BookOpen, label: "Templates", href: "/templates" },
   { icon: Settings, label: "Settings", href: "/settings" },
 ];
 
