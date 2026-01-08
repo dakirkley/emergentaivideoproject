@@ -47,6 +47,16 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [x] Manage cloned voices (list, use, delete)
 - [x] Use cloned voices in text-to-speech
 
+### NEW - Prompt Templates Library (Jan 8, 2026)
+- [x] 13 system templates (5 image, 4 video, 4 voice)
+- [x] Create custom templates with name, description, prompt
+- [x] Edit and delete user's own templates
+- [x] Public/Private template visibility
+- [x] Template categories and tags
+- [x] Search and filter templates
+- [x] Use template to auto-fill prompts in generation pages
+- [x] Copy prompt to clipboard
+
 ### UI/UX
 - [x] Electric Orange theme with dark mode default
 - [x] Light/Dark theme toggle
@@ -69,6 +79,7 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [ ] Kling AI Lip Sync feature
 - [ ] Batch file upload for voice cloning
 - [ ] Progress indicator for long-running generations
+- [ ] Template favorites/bookmarks
 
 ### P2 - Medium Priority
 - [ ] Generation history pagination
