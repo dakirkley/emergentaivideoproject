@@ -390,23 +390,62 @@ export default function VideoGeneration() {
                   {/* Image Upload for Image-to-Video */}
                   <div className="space-y-2">
                     <Label>Source Image (optional - for Image-to-Video)</Label>
-                    <FileUpload
-                      accept="image/*"
-                      label="Upload Image"
-                      description="Drop an image or click to upload"
-                      onUpload={(data) => setUploadedImage(data)}
-                    />
-                    {!uploadedImage && (
-                      <div className="mt-2">
-                        <Label className="text-xs text-muted-foreground">Or enter image URL</Label>
-                        <Input
-                          placeholder="https://example.com/image.jpg"
-                          value={imageUrl}
-                          onChange={(e) => setImageUrl(e.target.value)}
-                          className="mt-1"
-                          data-testid="image-url-input"
+                    
+                    {/* Show loaded image from Image Generation */}
+                    {sourceImageFromGen && uploadedImage ? (
+                      <Card className="p-4 border-blue-500/50 bg-blue-500/5">
+                        <div className="flex items-start gap-4">
+                          <div className="w-20 h-20 rounded-lg overflow-hidden bg-secondary flex-shrink-0">
+                            <img 
+                              src={sourceImageFromGen.url} 
+                              alt="Source" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-500">
+                                From Image Generation
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {sourceImageFromGen.prompt || "Generated image"}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSourceImageFromGen(null);
+                                setUploadedImage(null);
+                              }}
+                              className="text-xs mt-1 h-auto p-0 text-muted-foreground hover:text-foreground"
+                            >
+                              Clear and upload different image
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ) : (
+                      <>
+                        <FileUpload
+                          accept="image/*"
+                          label="Upload Image"
+                          description="Drop an image or click to upload"
+                          onUpload={(data) => setUploadedImage(data)}
                         />
-                      </div>
+                        {!uploadedImage && (
+                          <div className="mt-2">
+                            <Label className="text-xs text-muted-foreground">Or enter image URL</Label>
+                            <Input
+                              placeholder="https://example.com/image.jpg"
+                              value={imageUrl}
+                              onChange={(e) => setImageUrl(e.target.value)}
+                              className="mt-1"
+                              data-testid="image-url-input"
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
