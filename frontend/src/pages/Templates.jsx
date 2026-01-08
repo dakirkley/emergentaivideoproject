@@ -354,6 +354,10 @@ export default function Templates() {
           <Tabs defaultValue="all" className="space-y-6">
             <TabsList>
               <TabsTrigger value="all">All ({filteredTemplates.length})</TabsTrigger>
+              <TabsTrigger value="favorites" data-testid="tab-favorites">
+                <Heart className="w-4 h-4 mr-1" />
+                Favorites ({favoriteTemplates.length})
+              </TabsTrigger>
               <TabsTrigger value="mine">My Templates ({myTemplates.length})</TabsTrigger>
               <TabsTrigger value="system">Library ({systemTemplates.length})</TabsTrigger>
             </TabsList>
@@ -365,9 +369,33 @@ export default function Templates() {
                 onCopy={handleCopyPrompt}
                 onEdit={openEditDialog}
                 onDelete={handleDeleteTemplate}
+                onToggleFavorite={handleToggleFavorite}
                 getTypeIcon={getTypeIcon}
                 getTypeColor={getTypeColor}
               />
+            </TabsContent>
+
+            <TabsContent value="favorites" className="space-y-6">
+              {favoriteTemplates.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <Heart className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="font-heading font-bold text-xl mb-2">No favorites yet</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Click the heart icon on any template to add it to your favorites
+                  </p>
+                </Card>
+              ) : (
+                <TemplateGrid
+                  templates={favoriteTemplates}
+                  onUse={handleUseTemplate}
+                  onCopy={handleCopyPrompt}
+                  onEdit={openEditDialog}
+                  onDelete={handleDeleteTemplate}
+                  onToggleFavorite={handleToggleFavorite}
+                  getTypeIcon={getTypeIcon}
+                  getTypeColor={getTypeColor}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="mine" className="space-y-6">
