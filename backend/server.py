@@ -1018,6 +1018,376 @@ async def delete_generation(generation_id: str, user: User = Depends(get_current
     
     return {"message": "Generation deleted"}
 
+# ==================== PROMPT TEMPLATES ====================
+
+# System templates - pre-defined templates for all users
+SYSTEM_TEMPLATES = [
+    # Image templates
+    {
+        "template_id": "sys_img_portrait",
+        "name": "Professional Portrait",
+        "description": "Create a professional headshot portrait",
+        "prompt": "Professional portrait photograph of a person, studio lighting, neutral background, sharp focus, high resolution, corporate headshot style",
+        "type": "image",
+        "provider": "openai",
+        "category": "Portrait",
+        "tags": ["portrait", "professional", "headshot"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_img_landscape",
+        "name": "Epic Landscape",
+        "description": "Generate breathtaking landscape scenery",
+        "prompt": "Breathtaking landscape photograph, golden hour lighting, dramatic sky, mountains in the distance, crystal clear lake reflection, ultra detailed, 8K resolution, award-winning photography",
+        "type": "image",
+        "provider": "openai",
+        "category": "Nature",
+        "tags": ["landscape", "nature", "scenic"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_img_product",
+        "name": "Product Photography",
+        "description": "Clean product shot for e-commerce",
+        "prompt": "Professional product photography, clean white background, soft studio lighting, sharp focus, commercial quality, e-commerce ready, high detail",
+        "type": "image",
+        "provider": "openai",
+        "category": "Commercial",
+        "tags": ["product", "commercial", "ecommerce"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_img_cyberpunk",
+        "name": "Cyberpunk City",
+        "description": "Futuristic neon-lit cityscape",
+        "prompt": "Cyberpunk cityscape at night, neon lights reflecting on wet streets, towering skyscrapers with holographic advertisements, flying vehicles, atmospheric fog, cinematic composition, blade runner style",
+        "type": "image",
+        "provider": "openai",
+        "category": "Sci-Fi",
+        "tags": ["cyberpunk", "futuristic", "city", "neon"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_img_fantasy",
+        "name": "Fantasy Art",
+        "description": "Magical fantasy scene",
+        "prompt": "Epic fantasy scene, magical forest with glowing particles, ancient ruins overgrown with luminescent plants, mystical atmosphere, volumetric lighting, highly detailed digital art, fantasy concept art style",
+        "type": "image",
+        "provider": "openai",
+        "category": "Fantasy",
+        "tags": ["fantasy", "magical", "art"],
+        "is_system": True,
+        "is_public": True
+    },
+    # Video templates
+    {
+        "template_id": "sys_vid_cinematic",
+        "name": "Cinematic Scene",
+        "description": "Movie-quality video with dramatic movement",
+        "prompt": "Cinematic shot, slow camera pan, dramatic lighting, film grain, anamorphic lens flare, professional color grading, movie quality, 24fps film look",
+        "type": "video",
+        "provider": "kling",
+        "category": "Cinematic",
+        "tags": ["cinematic", "film", "dramatic"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_vid_nature",
+        "name": "Nature Documentary",
+        "description": "Wildlife and nature footage style",
+        "prompt": "Nature documentary style, smooth tracking shot, wildlife in natural habitat, golden hour lighting, National Geographic quality, pristine wilderness, gentle camera movement",
+        "type": "video",
+        "provider": "kling",
+        "category": "Nature",
+        "tags": ["nature", "documentary", "wildlife"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_vid_timelapse",
+        "name": "Urban Timelapse",
+        "description": "City timelapse with flowing traffic",
+        "prompt": "Urban timelapse, busy city streets, flowing car lights creating light trails, day to night transition, skyscrapers, clouds moving fast, hyperlapse effect",
+        "type": "video",
+        "provider": "kling",
+        "category": "Urban",
+        "tags": ["timelapse", "city", "urban"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_vid_product",
+        "name": "Product Showcase",
+        "description": "360° product rotation video",
+        "prompt": "Product showcase video, smooth 360 degree rotation, clean white background, soft studio lighting, product floating and slowly spinning, premium feel, commercial quality",
+        "type": "video",
+        "provider": "kling",
+        "category": "Commercial",
+        "tags": ["product", "showcase", "commercial"],
+        "is_system": True,
+        "is_public": True
+    },
+    # Voice templates
+    {
+        "template_id": "sys_voice_narrator",
+        "name": "Documentary Narrator",
+        "description": "Professional documentary-style narration",
+        "prompt": "In a world where technology shapes our future... discover the untold stories that define our generation. This is a journey through innovation, creativity, and human potential.",
+        "type": "voice",
+        "provider": "elevenlabs",
+        "category": "Narration",
+        "tags": ["documentary", "narrator", "professional"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_voice_commercial",
+        "name": "Commercial Voiceover",
+        "description": "Upbeat advertisement voice",
+        "prompt": "Introducing the all-new experience you have been waiting for! With cutting-edge features and unparalleled quality, transform your everyday life. Available now. Limited time offer!",
+        "type": "voice",
+        "provider": "elevenlabs",
+        "category": "Commercial",
+        "tags": ["commercial", "advertisement", "upbeat"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_voice_meditation",
+        "name": "Meditation Guide",
+        "description": "Calm and soothing meditation voice",
+        "prompt": "Take a deep breath... and slowly exhale. Feel the tension leaving your body. With each breath, you become more relaxed... more peaceful. Let your mind settle into this moment of stillness.",
+        "type": "voice",
+        "provider": "elevenlabs",
+        "category": "Wellness",
+        "tags": ["meditation", "calm", "relaxation"],
+        "is_system": True,
+        "is_public": True
+    },
+    {
+        "template_id": "sys_voice_podcast",
+        "name": "Podcast Introduction",
+        "description": "Engaging podcast intro style",
+        "prompt": "Welcome back to another episode! I am so excited to have you here today. We have got an incredible conversation lined up that I know you are going to love. Let us dive right in!",
+        "type": "voice",
+        "provider": "elevenlabs",
+        "category": "Podcast",
+        "tags": ["podcast", "introduction", "engaging"],
+        "is_system": True,
+        "is_public": True
+    }
+]
+
+@templates_router.get("")
+async def get_templates(
+    type: Optional[str] = None,
+    category: Optional[str] = None,
+    include_system: bool = True,
+    user: User = Depends(get_current_user)
+):
+    """Get prompt templates (system + user's custom templates)"""
+    templates = []
+    
+    # Add system templates
+    if include_system:
+        for tmpl in SYSTEM_TEMPLATES:
+            if type and tmpl["type"] != type:
+                continue
+            if category and tmpl.get("category") != category:
+                continue
+            templates.append({**tmpl, "user_id": None, "usage_count": 0})
+    
+    # Get user's custom templates
+    query = {"user_id": user.user_id}
+    if type:
+        query["type"] = type
+    if category:
+        query["category"] = category
+    
+    user_templates = await db.prompt_templates.find(
+        query, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    templates.extend(user_templates)
+    
+    # Get public templates from other users
+    public_query = {"is_public": True, "user_id": {"$ne": user.user_id}}
+    if type:
+        public_query["type"] = type
+    if category:
+        public_query["category"] = category
+    
+    public_templates = await db.prompt_templates.find(
+        public_query, {"_id": 0}
+    ).sort("usage_count", -1).limit(20).to_list(20)
+    
+    templates.extend(public_templates)
+    
+    return {"templates": templates}
+
+@templates_router.get("/categories")
+async def get_template_categories(user: User = Depends(get_current_user)):
+    """Get all available template categories"""
+    categories = set()
+    
+    # From system templates
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl.get("category"):
+            categories.add(tmpl["category"])
+    
+    # From user templates
+    user_categories = await db.prompt_templates.distinct("category", {"user_id": user.user_id})
+    categories.update([c for c in user_categories if c])
+    
+    return {"categories": sorted(list(categories))}
+
+@templates_router.post("")
+async def create_template(
+    template: PromptTemplateCreate,
+    user: User = Depends(get_current_user)
+):
+    """Create a new prompt template"""
+    template_doc = {
+        "template_id": f"tmpl_{uuid.uuid4().hex[:12]}",
+        "user_id": user.user_id,
+        "name": template.name,
+        "description": template.description,
+        "prompt": template.prompt,
+        "type": template.type,
+        "provider": template.provider,
+        "category": template.category,
+        "tags": template.tags,
+        "is_public": template.is_public,
+        "is_system": False,
+        "usage_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.prompt_templates.insert_one(template_doc)
+    
+    return {
+        "template_id": template_doc["template_id"],
+        "message": "Template created successfully"
+    }
+
+@templates_router.get("/{template_id}")
+async def get_template(template_id: str, user: User = Depends(get_current_user)):
+    """Get a specific template"""
+    # Check system templates first
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl["template_id"] == template_id:
+            return tmpl
+    
+    # Check user templates
+    template = await db.prompt_templates.find_one(
+        {"template_id": template_id},
+        {"_id": 0}
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    # Check access
+    if template["user_id"] != user.user_id and not template.get("is_public"):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return template
+
+@templates_router.put("/{template_id}")
+async def update_template(
+    template_id: str,
+    update: PromptTemplateUpdate,
+    user: User = Depends(get_current_user)
+):
+    """Update a prompt template"""
+    # Can't update system templates
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl["template_id"] == template_id:
+            raise HTTPException(status_code=400, detail="Cannot modify system templates")
+    
+    # Verify ownership
+    template = await db.prompt_templates.find_one(
+        {"template_id": template_id, "user_id": user.user_id}
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    update_data = {}
+    if update.name is not None:
+        update_data["name"] = update.name
+    if update.description is not None:
+        update_data["description"] = update.description
+    if update.prompt is not None:
+        update_data["prompt"] = update.prompt
+    if update.category is not None:
+        update_data["category"] = update.category
+    if update.tags is not None:
+        update_data["tags"] = update.tags
+    if update.is_public is not None:
+        update_data["is_public"] = update.is_public
+    
+    if update_data:
+        update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.prompt_templates.update_one(
+            {"template_id": template_id},
+            {"$set": update_data}
+        )
+    
+    return {"message": "Template updated successfully"}
+
+@templates_router.delete("/{template_id}")
+async def delete_template(template_id: str, user: User = Depends(get_current_user)):
+    """Delete a prompt template"""
+    # Can't delete system templates
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl["template_id"] == template_id:
+            raise HTTPException(status_code=400, detail="Cannot delete system templates")
+    
+    result = await db.prompt_templates.delete_one({
+        "template_id": template_id,
+        "user_id": user.user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return {"message": "Template deleted"}
+
+@templates_router.post("/{template_id}/use")
+async def use_template(template_id: str, user: User = Depends(get_current_user)):
+    """Record template usage and return the template"""
+    # Check system templates
+    for tmpl in SYSTEM_TEMPLATES:
+        if tmpl["template_id"] == template_id:
+            return {"prompt": tmpl["prompt"], "template": tmpl}
+    
+    # Check user/public templates
+    template = await db.prompt_templates.find_one(
+        {"template_id": template_id},
+        {"_id": 0}
+    )
+    
+    if not template:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    # Check access
+    if template["user_id"] != user.user_id and not template.get("is_public"):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Increment usage count
+    await db.prompt_templates.update_one(
+        {"template_id": template_id},
+        {"$inc": {"usage_count": 1}}
+    )
+    
+    return {"prompt": template["prompt"], "template": template}
+
 # ==================== HEALTH CHECK ====================
 
 @api_router.get("/")
