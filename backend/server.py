@@ -1422,7 +1422,7 @@ async def favorite_template(template_id: str, user: User = Depends(get_current_u
 @templates_router.delete("/{template_id}/favorite")
 async def unfavorite_template(template_id: str, user: User = Depends(get_current_user)):
     """Remove a template from favorites"""
-    result = await db.template_favorites.delete_one({
+    await db.template_favorites.delete_one({
         "user_id": user.user_id,
         "template_id": template_id
     })
