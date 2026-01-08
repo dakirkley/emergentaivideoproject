@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ import {
 import { Mic, Loader2, Download, Play, Pause, Sparkles, Volume2, UserPlus, Trash2, Plus } from "lucide-react";
 
 export default function VoiceGeneration() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("text-to-speech");
   const [text, setText] = useState("");
   const [provider, setProvider] = useState("elevenlabs");
@@ -47,7 +49,11 @@ export default function VoiceGeneration() {
   useEffect(() => {
     fetchApiKeys();
     fetchClonedVoices();
-  }, []);
+    // Check for prompt from template navigation
+    if (location.state?.prompt) {
+      setText(location.state.prompt);
+    }
+  }, [location.state]);
 
   const fetchApiKeys = async () => {
     try {
