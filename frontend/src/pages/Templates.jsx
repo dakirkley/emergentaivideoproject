@@ -48,7 +48,8 @@ import {
   BookOpen,
   Star,
   Globe,
-  Lock
+  Lock,
+  Heart
 } from "lucide-react";
 
 export default function Templates() {
@@ -63,6 +64,7 @@ export default function Templates() {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
 
   // Form state
   const [formData, setFormData] = useState({
