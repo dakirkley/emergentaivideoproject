@@ -513,7 +513,7 @@ function TemplateForm({ formData, setFormData, categories, isEdit = false }) {
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="any">Any</SelectItem>
                 <SelectItem value="openai">OpenAI</SelectItem>
                 <SelectItem value="fal">Fal.ai</SelectItem>
                 <SelectItem value="kling">Kling AI</SelectItem>
