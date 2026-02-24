@@ -13,6 +13,8 @@ import VoiceGeneration from "./pages/VoiceGeneration";
 import Gallery from "./pages/Gallery";
 import Settings from "./pages/Settings";
 import Templates from "./pages/Templates";
+import Storyboards from "./pages/Storyboards";
+import StoryboardEditor from "./pages/StoryboardEditor";
 
 // Context
 const ThemeContext = createContext();
@@ -136,6 +138,8 @@ function AppRouter() {
       <Route path="/generate/voice" element={<ProtectedRoute><VoiceGeneration /></ProtectedRoute>} />
       <Route path="/gallery" element={<ProtectedRoute><Gallery /></ProtectedRoute>} />
       <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+      <Route path="/storyboards" element={<ProtectedRoute><Storyboards /></ProtectedRoute>} />
+      <Route path="/storyboard/:id" element={<ProtectedRoute><StoryboardEditor /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
