@@ -1574,6 +1574,9 @@ async def create_storyboard(
     
     await db.storyboards.insert_one(sb_doc)
     
+    # Remove MongoDB _id before returning (it gets added by insert_one)
+    sb_doc.pop("_id", None)
+    
     return {"storyboard_id": storyboard.storyboard_id, "storyboard": sb_doc}
 
 @storyboard_router.get("/{storyboard_id}")
