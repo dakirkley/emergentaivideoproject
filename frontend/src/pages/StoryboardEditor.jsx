@@ -379,7 +379,7 @@ export default function StoryboardEditor() {
       <Sheet open={!!activeScene} onOpenChange={(open) => !open && setActiveScene(null)}>
         <SheetContent 
           side="right" 
-          className="w-full sm:max-w-xl bg-zinc-900 border-zinc-800 p-0 overflow-hidden"
+          className="w-full sm:max-w-xl bg-card border-border p-0 overflow-hidden"
         >
           {activeScene && (
             <SceneDetailPanel
@@ -397,7 +397,7 @@ export default function StoryboardEditor() {
 
       {/* Delete Scene Confirmation */}
       <AlertDialog open={!!showDeleteSceneDialog} onOpenChange={() => setShowDeleteSceneDialog(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this scene?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -415,7 +415,8 @@ export default function StoryboardEditor() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </Layout>
   );
 }
 
