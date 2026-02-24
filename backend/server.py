@@ -113,6 +113,63 @@ class PromptTemplateUpdate(BaseModel):
     tags: Optional[List[str]] = None
     is_public: Optional[bool] = None
 
+# ==================== STORYBOARD MODELS ====================
+
+class SceneMedia(BaseModel):
+    media_id: str = Field(default_factory=lambda: f"media_{uuid.uuid4().hex[:8]}")
+    type: Literal["image", "audio"]
+    url: str
+    filename: str
+    duration: Optional[float] = None  # For audio files
+    size: Optional[int] = None
+
+class Scene(BaseModel):
+    scene_id: str = Field(default_factory=lambda: f"scene_{uuid.uuid4().hex[:8]}")
+    title: str = "Untitled Scene"
+    script: str = ""
+    image: Optional[SceneMedia] = None
+    audio: Optional[SceneMedia] = None
+    notes: str = ""
+    tags: List[str] = []
+    duration: Optional[float] = None
+    order: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Storyboard(BaseModel):
+    storyboard_id: str = Field(default_factory=lambda: f"sb_{uuid.uuid4().hex[:10]}")
+    user_id: str
+    title: str = "Untitled Storyboard"
+    description: str = ""
+    scenes: List[Scene] = []
+    thumbnail_url: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class StoryboardCreate(BaseModel):
+    title: str = "Untitled Storyboard"
+    description: str = ""
+
+class StoryboardUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+class SceneCreate(BaseModel):
+    title: str = "Untitled Scene"
+    script: str = ""
+    notes: str = ""
+    tags: List[str] = []
+
+class SceneUpdate(BaseModel):
+    title: Optional[str] = None
+    script: Optional[str] = None
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+    duration: Optional[float] = None
+
+class SceneReorder(BaseModel):
+    scene_ids: List[str]  # Ordered list of scene IDs
+
 class Generation(BaseModel):
     generation_id: str = Field(default_factory=lambda: f"gen_{uuid.uuid4().hex[:12]}")
     user_id: str
