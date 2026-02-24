@@ -4,6 +4,7 @@ import { motion, AnimatePresence, Reorder } from "framer-motion";
 import axios from "axios";
 import { toast } from "sonner";
 import { API } from "../App";
+import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -75,7 +76,7 @@ export default function StoryboardEditor() {
     } catch (error) {
       console.error("Error fetching storyboard:", error);
       toast.error("Failed to load storyboard");
-      navigate("/storyboard");
+      navigate("/storyboards");
     } finally {
       setLoading(false);
     }
@@ -240,23 +241,25 @@ export default function StoryboardEditor() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-800">
-        <div className="flex items-center justify-between px-6 py-4">
+    <Layout>
+      <div className="h-[calc(100vh-7rem)] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/storyboard")}
-              className="rounded-full hover:bg-zinc-800"
+              onClick={() => navigate("/storyboards")}
+              className="rounded-full"
               data-testid="back-btn"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -269,13 +272,13 @@ export default function StoryboardEditor() {
                   setStoryboard(prev => ({ ...prev, title: e.target.value }));
                 }}
                 onBlur={(e) => updateStoryboardTitle(e.target.value)}
-                className="bg-transparent border-none text-xl font-heading font-bold focus:ring-0 p-0 h-auto"
+                className="bg-transparent border-none text-xl font-heading font-bold focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto max-w-md"
                 data-testid="storyboard-title"
               />
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-muted-foreground">
               {scenes.length} scene{scenes.length !== 1 ? "s" : ""}
             </span>
             {saving && (
@@ -286,82 +289,91 @@ export default function StoryboardEditor() {
             )}
           </div>
         </div>
-      </header>
 
-      {/* Timeline */}
-      <div className="flex-1 flex flex-col">
-        <div className="px-6 py-4">
-          <p className="text-sm text-zinc-500 uppercase tracking-wider font-medium">
-            Timeline
-          </p>
-        </div>
-        
-        <div 
-          ref={timelineRef}
-          className="flex-1 overflow-x-auto overflow-y-hidden pb-8 px-6"
-          style={{ scrollBehavior: "smooth" }}
-        >
-          <div className="flex gap-4 min-h-[400px]">
-            <Reorder.Group
-              axis="x"
-              values={scenes}
-              onReorder={handleReorder}
-              className="flex gap-4"
+        {/* Timeline */}
+        <div className="flex-1 bg-secondary/30 rounded-2xl border border-border/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-2">
+              <GripVertical className="w-4 h-4" />
+              Timeline — Drag to reorder
+            </p>
+            <Button
+              onClick={addScene}
+              size="sm"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-full"
+              data-testid="add-scene-header-btn"
             >
-              <AnimatePresence initial={false}>
-                {scenes.map((scene, index) => (
-                  <Reorder.Item
-                    key={scene.scene_id}
-                    value={scene}
-                    className="relative"
-                    whileDrag={{ scale: 1.02, boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}
-                  >
-                    <SceneCard
-                      scene={scene}
-                      index={index}
-                      isActive={activeScene?.scene_id === scene.scene_id}
-                      onClick={() => setActiveScene(scene)}
-                      onDelete={() => setShowDeleteSceneDialog(scene.scene_id)}
-                      onUploadImage={(file) => uploadMedia(scene.scene_id, file, "image")}
-                      onUploadAudio={(file) => uploadMedia(scene.scene_id, file, "audio")}
-                    />
-                  </Reorder.Item>
-                ))}
-              </AnimatePresence>
-            </Reorder.Group>
-
-            {/* Add Scene Button */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex-shrink-0"
-            >
-              <Card
-                onClick={addScene}
-                className="w-72 h-80 border-2 border-dashed border-zinc-700 hover:border-orange-500/50 bg-transparent hover:bg-zinc-900/30 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
-                data-testid="add-scene-btn"
-              >
-                <div className="w-14 h-14 rounded-full bg-zinc-800 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
-                  <Plus className="w-7 h-7 text-zinc-500 group-hover:text-orange-500 transition-colors" />
-                </div>
-                <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors font-medium">
-                  Add Scene
-                </span>
-              </Card>
-            </motion.div>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Scene
+            </Button>
           </div>
-        </div>
+          
+          <div 
+            ref={timelineRef}
+            className="overflow-x-auto overflow-y-hidden pb-4"
+            style={{ scrollBehavior: "smooth" }}
+          >
+            <div className="flex gap-4 min-h-[340px]">
+              <Reorder.Group
+                axis="x"
+                values={scenes}
+                onReorder={handleReorder}
+                className="flex gap-4"
+              >
+                <AnimatePresence initial={false}>
+                  {scenes.map((scene, index) => (
+                    <Reorder.Item
+                      key={scene.scene_id}
+                      value={scene}
+                      className="relative"
+                      whileDrag={{ scale: 1.02, boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}
+                    >
+                      <SceneCard
+                        scene={scene}
+                        index={index}
+                        isActive={activeScene?.scene_id === scene.scene_id}
+                        onClick={() => setActiveScene(scene)}
+                        onDelete={() => setShowDeleteSceneDialog(scene.scene_id)}
+                        onUploadImage={(file) => uploadMedia(scene.scene_id, file, "image")}
+                        onUploadAudio={(file) => uploadMedia(scene.scene_id, file, "audio")}
+                      />
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
 
-        {/* Empty State */}
-        {scenes.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center">
-              <p className="text-xl text-zinc-500 font-heading">Drop your first scene here.</p>
-              <p className="text-sm text-zinc-600 mt-2">This is where the story begins.</p>
+              {/* Add Scene Button */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex-shrink-0"
+              >
+                <Card
+                  onClick={addScene}
+                  className="w-72 h-80 border-2 border-dashed border-border/50 hover:border-orange-500/50 bg-transparent hover:bg-orange-500/5 cursor-pointer transition-all duration-300 flex flex-col items-center justify-center gap-4 group"
+                  data-testid="add-scene-btn"
+                >
+                  <div className="w-14 h-14 rounded-full bg-secondary group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                    <Plus className="w-7 h-7 text-muted-foreground group-hover:text-orange-500 transition-colors" />
+                  </div>
+                  <span className="text-muted-foreground group-hover:text-foreground transition-colors font-medium">
+                    Add Scene
+                  </span>
+                </Card>
+              </motion.div>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Empty State */}
+          {scenes.length === 0 && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center">
+                <p className="text-xl text-muted-foreground font-heading">Drop your first scene here.</p>
+                <p className="text-sm text-muted-foreground/60 mt-2">This is where the story begins.</p>
+              </div>
+            </div>
+          )}
+        </div>
 
       {/* Scene Detail Panel */}
       <Sheet open={!!activeScene} onOpenChange={(open) => !open && setActiveScene(null)}>
