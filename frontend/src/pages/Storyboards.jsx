@@ -135,7 +135,7 @@ export default function Storyboards() {
             <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
           </div>
         ) : storyboards.length === 0 ? (
-          <Card className="p-16 text-center bg-gradient-to-br from-zinc-900/50 to-zinc-800/30 border-zinc-700/50">
+          <Card className="p-16 text-center bg-gradient-to-br from-secondary/50 to-secondary/30 border-border/50">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -173,11 +173,11 @@ export default function Storyboards() {
                 >
                   <Link to={`/storyboard/${storyboard.storyboard_id}`}>
                     <Card 
-                      className="group overflow-hidden bg-zinc-900/50 border-zinc-700/50 hover:border-orange-500/50 transition-all duration-300 cursor-pointer"
+                      className="group overflow-hidden bg-card border-border/50 hover:border-orange-500/50 transition-all duration-300 cursor-pointer"
                       data-testid={`storyboard-card-${index}`}
                     >
                       {/* Thumbnail */}
-                      <div className="aspect-video bg-zinc-800/50 relative overflow-hidden">
+                      <div className="aspect-video bg-secondary/50 relative overflow-hidden">
                         {storyboard.thumbnail_url ? (
                           <img
                             src={storyboard.thumbnail_url}
@@ -186,7 +186,7 @@ export default function Storyboards() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Film className="w-12 h-12 text-zinc-600" />
+                            <Film className="w-12 h-12 text-muted-foreground/30" />
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -248,7 +248,7 @@ export default function Storyboards() {
 
         {/* Create Dialog */}
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent className="bg-zinc-900 border-zinc-700">
+          <DialogContent className="bg-card border-border">
             <DialogHeader>
               <DialogTitle className="font-heading text-xl">New Storyboard</DialogTitle>
             </DialogHeader>
@@ -257,7 +257,7 @@ export default function Storyboards() {
                 placeholder="Enter storyboard title..."
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-secondary border-border"
                 data-testid="storyboard-title-input"
                 autoFocus
                 onKeyDown={(e) => {
@@ -287,7 +287,7 @@ export default function Storyboards() {
 
         {/* Delete Confirmation */}
         <AlertDialog open={!!showDeleteDialog} onOpenChange={() => setShowDeleteDialog(null)}>
-          <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+          <AlertDialogContent className="bg-card border-border">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Storyboard?</AlertDialogTitle>
               <AlertDialogDescription>
