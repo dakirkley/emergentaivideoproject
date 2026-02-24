@@ -33,6 +33,7 @@ generation_router = APIRouter(prefix="/api/generate")
 gallery_router = APIRouter(prefix="/api/gallery")
 settings_router = APIRouter(prefix="/api/settings")
 templates_router = APIRouter(prefix="/api/templates")
+storyboard_router = APIRouter(prefix="/api/storyboards")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
