@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class AICreativeStudioTester:
-    def __init__(self, base_url: str = "https://aigen-hub-5.preview.emergentagent.com"):
+    def __init__(self, base_url: str = "https://cinematic-hub-37.preview.emergentagent.com"):
         self.base_url = base_url
         self.session_token = None
         self.tests_run = 0
