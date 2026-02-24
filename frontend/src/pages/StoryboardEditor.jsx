@@ -436,14 +436,14 @@ function SceneCard({ scene, index, isActive, onClick, onDelete, onUploadImage, o
         onClick={onClick}
         className={`w-72 h-80 flex-shrink-0 cursor-pointer transition-all duration-300 overflow-hidden group ${
           isActive 
-            ? "ring-2 ring-orange-500 bg-zinc-800/80 scale-[1.02]" 
-            : "bg-zinc-900/50 hover:bg-zinc-800/50 hover:scale-[1.01]"
+            ? "ring-2 ring-orange-500 bg-secondary/80 scale-[1.02]" 
+            : "bg-card hover:bg-secondary/50 hover:scale-[1.01]"
         }`}
         data-testid={`scene-card-${index}`}
       >
         {/* Drag Handle */}
         <div className="absolute top-2 left-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10">
-          <GripVertical className="w-4 h-4 text-zinc-500" />
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
 
         {/* Delete Button */}
@@ -452,13 +452,13 @@ function SceneCard({ scene, index, isActive, onClick, onDelete, onUploadImage, o
             e.stopPropagation();
             onDelete();
           }}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-zinc-800/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20 z-10"
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500/20 z-10"
         >
-          <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-400" />
+          <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-400" />
         </button>
 
         {/* Image Area */}
-        <div className="h-36 bg-zinc-800/50 relative overflow-hidden">
+        <div className="h-36 bg-secondary/50 relative overflow-hidden">
           {scene.image?.url ? (
             <img
               src={scene.image.url}
@@ -466,9 +466,9 @@ function SceneCard({ scene, index, isActive, onClick, onDelete, onUploadImage, o
               className="w-full h-full object-cover"
             />
           ) : (
-            <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-700/30 transition-colors">
-              <Image className="w-8 h-8 text-zinc-600 mb-2" />
-              <span className="text-xs text-zinc-500">Drop your visuals here</span>
+            <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/70 transition-colors">
+              <Image className="w-8 h-8 text-muted-foreground/40 mb-2" />
+              <span className="text-xs text-muted-foreground/60">Drop your visuals here</span>
               <input
                 ref={imageInputRef}
                 type="file"
@@ -493,17 +493,17 @@ function SceneCard({ scene, index, isActive, onClick, onDelete, onUploadImage, o
           <h3 className="font-heading font-semibold text-sm truncate mb-2">
             {scene.title}
           </h3>
-          <p className="text-xs text-zinc-400 line-clamp-3 flex-1">
+          <p className="text-xs text-muted-foreground line-clamp-3 flex-1">
             {scene.script || "No script yet..."}
           </p>
 
           {/* Audio indicator */}
           {scene.audio && (
-            <div className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
+            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
               <Music className="w-3 h-3" />
               <span className="truncate">{scene.audio.filename}</span>
               {scene.audio.duration && (
-                <span className="text-zinc-600">
+                <span className="text-muted-foreground/60">
                   {Math.round(scene.audio.duration)}s
                 </span>
               )}
@@ -540,7 +540,7 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border">
         <div>
           <p className="text-xs text-orange-500 uppercase tracking-wider font-medium">Scene Details</p>
           <h2 className="font-heading font-bold text-lg mt-1">{scene.title}</h2>
@@ -566,8 +566,8 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
         <div className="p-6 space-y-6">
           {/* Image Preview */}
           <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">Visual</Label>
-            <div className="aspect-video rounded-lg overflow-hidden bg-zinc-800 relative group">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Visual</Label>
+            <div className="aspect-video rounded-lg overflow-hidden bg-secondary relative group">
               {scene.image?.url ? (
                 <>
                   <img
@@ -595,9 +595,9 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
                   </div>
                 </>
               ) : (
-                <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-700/30 transition-colors">
-                  <Upload className="w-8 h-8 text-zinc-600 mb-2" />
-                  <span className="text-sm text-zinc-500">Upload image</span>
+                <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-secondary/70 transition-colors">
+                  <Upload className="w-8 h-8 text-muted-foreground/40 mb-2" />
+                  <span className="text-sm text-muted-foreground/60">Upload image</span>
                 </label>
               )}
               <input
@@ -616,21 +616,22 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
 
           {/* Title */}
           <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">Title</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Title</Label>
             <Input
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
                 setHasChanges(true);
               }}
-              className="bg-zinc-800 border-zinc-700"
+              className="bg-secondary border-border"
               placeholder="Scene title..."
+              data-testid="scene-detail-title"
             />
           </div>
 
           {/* Script */}
           <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <FileText className="w-3 h-3" />
               Script
             </Label>
@@ -640,21 +641,22 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
                 setScript(e.target.value);
                 setHasChanges(true);
               }}
-              className="bg-zinc-800 border-zinc-700 min-h-[200px] resize-none"
+              className="bg-secondary border-border min-h-[200px] resize-none"
               placeholder="Write your scene script here..."
+              data-testid="scene-detail-script"
             />
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator />
 
           {/* Audio */}
           <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-2">
               <Music className="w-3 h-3" />
               Audio Resource
             </Label>
             {scene.audio?.url ? (
-              <Card className="p-4 bg-zinc-800/50 border-zinc-700">
+              <Card className="p-4 bg-secondary/50 border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
@@ -665,7 +667,7 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
                         {scene.audio.filename}
                       </p>
                       {scene.audio.duration && (
-                        <p className="text-xs text-zinc-500 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {Math.round(scene.audio.duration)} seconds
                         </p>
@@ -676,7 +678,7 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
                     size="icon"
                     variant="ghost"
                     onClick={onDeleteAudio}
-                    className="rounded-full text-zinc-400 hover:text-red-400"
+                    className="rounded-full text-muted-foreground hover:text-red-400"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -689,11 +691,11 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
               </Card>
             ) : (
               <label className="block">
-                <Card className="p-6 bg-zinc-800/30 border-zinc-700 border-dashed cursor-pointer hover:border-orange-500/50 transition-colors">
+                <Card className="p-6 bg-secondary/30 border-border border-dashed cursor-pointer hover:border-orange-500/50 transition-colors">
                   <div className="flex flex-col items-center gap-2 text-center">
-                    <Upload className="w-6 h-6 text-zinc-500" />
-                    <span className="text-sm text-zinc-400">Attach audio file</span>
-                    <span className="text-xs text-zinc-600">MP3, WAV, or OGG</span>
+                    <Upload className="w-6 h-6 text-muted-foreground/60" />
+                    <span className="text-sm text-muted-foreground">Attach audio file</span>
+                    <span className="text-xs text-muted-foreground/60">MP3, WAV, or OGG</span>
                   </div>
                 </Card>
                 <input
@@ -711,19 +713,20 @@ function SceneDetailPanel({ scene, onUpdate, onUploadImage, onUploadAudio, onDel
             )}
           </div>
 
-          <Separator className="bg-zinc-800" />
+          <Separator />
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label className="text-xs text-zinc-400 uppercase tracking-wider">Director Notes</Label>
+            <Label className="text-xs text-muted-foreground uppercase tracking-wider">Director Notes</Label>
             <Textarea
               value={notes}
               onChange={(e) => {
                 setNotes(e.target.value);
                 setHasChanges(true);
               }}
-              className="bg-zinc-800 border-zinc-700 min-h-[100px] resize-none"
+              className="bg-secondary border-border min-h-[100px] resize-none"
               placeholder="Production notes, directions, reminders..."
+              data-testid="scene-detail-notes"
             />
           </div>
         </div>
