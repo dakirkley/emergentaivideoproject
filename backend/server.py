@@ -1629,6 +1629,44 @@ async def delete_storyboard(storyboard_id: str, user: User = Depends(get_current
     
     return {"message": "Storyboard deleted"}
 
+# Scene reorder route MUST be before {scene_id} routes to avoid route conflict
+@storyboard_router.put("/{storyboard_id}/scenes/reorder")
+async def reorder_scenes(
+    storyboard_id: str,
+    data: SceneReorder,
+    user: User = Depends(get_current_user)
+):
+    """Reorder scenes in a storyboard"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    scenes = storyboard.get("scenes", [])
+    scene_map = {s["scene_id"]: s for s in scenes}
+    
+    # Reorder based on provided IDs
+    reordered_scenes = []
+    for i, scene_id in enumerate(data.scene_ids):
+        if scene_id in scene_map:
+            scene = scene_map[scene_id]
+            scene["order"] = i
+            reordered_scenes.append(scene)
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$set": {
+                "scenes": reordered_scenes,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": "Scenes reordered"}
+
 # Scene routes
 @storyboard_router.post("/{storyboard_id}/scenes")
 async def add_scene(
