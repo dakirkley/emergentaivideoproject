@@ -1527,6 +1527,365 @@ async def use_template(template_id: str, user: User = Depends(get_current_user))
     
     return {"prompt": template["prompt"], "template": template}
 
+# ==================== STORYBOARD ROUTES ====================
+
+@storyboard_router.get("")
+async def get_storyboards(user: User = Depends(get_current_user)):
+    """Get all storyboards for the user"""
+    storyboards = await db.storyboards.find(
+        {"user_id": user.user_id},
+        {"_id": 0}
+    ).sort("updated_at", -1).to_list(100)
+    
+    # Add thumbnail from first scene if available
+    for sb in storyboards:
+        if sb.get("scenes") and len(sb["scenes"]) > 0:
+            first_scene = sb["scenes"][0]
+            if first_scene.get("image"):
+                sb["thumbnail_url"] = first_scene["image"].get("url")
+    
+    return {"storyboards": storyboards}
+
+@storyboard_router.post("")
+async def create_storyboard(
+    data: StoryboardCreate,
+    user: User = Depends(get_current_user)
+):
+    """Create a new storyboard"""
+    storyboard = Storyboard(
+        user_id=user.user_id,
+        title=data.title,
+        description=data.description,
+        scenes=[
+            Scene(
+                title="Scene 1 — Opening",
+                script="This is where the story begins...",
+                order=0
+            ).model_dump()
+        ]
+    )
+    
+    sb_doc = storyboard.model_dump()
+    sb_doc["created_at"] = sb_doc["created_at"].isoformat()
+    sb_doc["updated_at"] = sb_doc["updated_at"].isoformat()
+    for scene in sb_doc["scenes"]:
+        scene["created_at"] = scene["created_at"].isoformat()
+        scene["updated_at"] = scene["updated_at"].isoformat()
+    
+    await db.storyboards.insert_one(sb_doc)
+    
+    return {"storyboard_id": storyboard.storyboard_id, "storyboard": sb_doc}
+
+@storyboard_router.get("/{storyboard_id}")
+async def get_storyboard(storyboard_id: str, user: User = Depends(get_current_user)):
+    """Get a specific storyboard"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id},
+        {"_id": 0}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    return {"storyboard": storyboard}
+
+@storyboard_router.put("/{storyboard_id}")
+async def update_storyboard(
+    storyboard_id: str,
+    data: StoryboardUpdate,
+    user: User = Depends(get_current_user)
+):
+    """Update storyboard metadata"""
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if data.title is not None:
+        update_data["title"] = data.title
+    if data.description is not None:
+        update_data["description"] = data.description
+    
+    result = await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    return {"message": "Storyboard updated"}
+
+@storyboard_router.delete("/{storyboard_id}")
+async def delete_storyboard(storyboard_id: str, user: User = Depends(get_current_user)):
+    """Delete a storyboard"""
+    result = await db.storyboards.delete_one({
+        "storyboard_id": storyboard_id,
+        "user_id": user.user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    return {"message": "Storyboard deleted"}
+
+# Scene routes
+@storyboard_router.post("/{storyboard_id}/scenes")
+async def add_scene(
+    storyboard_id: str,
+    data: SceneCreate,
+    user: User = Depends(get_current_user)
+):
+    """Add a new scene to the storyboard"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    # Get next order number
+    scenes = storyboard.get("scenes", [])
+    next_order = len(scenes)
+    
+    scene = Scene(
+        title=data.title,
+        script=data.script,
+        notes=data.notes,
+        tags=data.tags,
+        order=next_order
+    )
+    
+    scene_doc = scene.model_dump()
+    scene_doc["created_at"] = scene_doc["created_at"].isoformat()
+    scene_doc["updated_at"] = scene_doc["updated_at"].isoformat()
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$push": {"scenes": scene_doc},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    return {"scene_id": scene.scene_id, "scene": scene_doc}
+
+@storyboard_router.put("/{storyboard_id}/scenes/{scene_id}")
+async def update_scene(
+    storyboard_id: str,
+    scene_id: str,
+    data: SceneUpdate,
+    user: User = Depends(get_current_user)
+):
+    """Update a scene"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    # Find and update scene
+    scenes = storyboard.get("scenes", [])
+    scene_index = next((i for i, s in enumerate(scenes) if s["scene_id"] == scene_id), None)
+    
+    if scene_index is None:
+        raise HTTPException(status_code=404, detail="Scene not found")
+    
+    # Update scene fields
+    if data.title is not None:
+        scenes[scene_index]["title"] = data.title
+    if data.script is not None:
+        scenes[scene_index]["script"] = data.script
+    if data.notes is not None:
+        scenes[scene_index]["notes"] = data.notes
+    if data.tags is not None:
+        scenes[scene_index]["tags"] = data.tags
+    if data.duration is not None:
+        scenes[scene_index]["duration"] = data.duration
+    
+    scenes[scene_index]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$set": {
+                "scenes": scenes,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": "Scene updated", "scene": scenes[scene_index]}
+
+@storyboard_router.delete("/{storyboard_id}/scenes/{scene_id}")
+async def delete_scene(
+    storyboard_id: str,
+    scene_id: str,
+    user: User = Depends(get_current_user)
+):
+    """Delete a scene"""
+    result = await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id},
+        {
+            "$pull": {"scenes": {"scene_id": scene_id}},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    return {"message": "Scene deleted"}
+
+@storyboard_router.put("/{storyboard_id}/scenes/reorder")
+async def reorder_scenes(
+    storyboard_id: str,
+    data: SceneReorder,
+    user: User = Depends(get_current_user)
+):
+    """Reorder scenes in a storyboard"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    scenes = storyboard.get("scenes", [])
+    scene_map = {s["scene_id"]: s for s in scenes}
+    
+    # Reorder based on provided IDs
+    reordered_scenes = []
+    for i, scene_id in enumerate(data.scene_ids):
+        if scene_id in scene_map:
+            scene = scene_map[scene_id]
+            scene["order"] = i
+            reordered_scenes.append(scene)
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$set": {
+                "scenes": reordered_scenes,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": "Scenes reordered"}
+
+@storyboard_router.post("/{storyboard_id}/scenes/{scene_id}/media")
+async def upload_scene_media(
+    storyboard_id: str,
+    scene_id: str,
+    media_type: str = Form(...),  # "image" or "audio"
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user)
+):
+    """Upload media to a scene"""
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    # Validate media type
+    if media_type not in ["image", "audio"]:
+        raise HTTPException(status_code=400, detail="Invalid media type")
+    
+    # Validate file type
+    content_type = file.content_type or ""
+    if media_type == "image" and not content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Invalid image file")
+    if media_type == "audio" and not content_type.startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Invalid audio file")
+    
+    # Read file content
+    content = await file.read()
+    
+    # Check file size (max 50MB)
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 50MB)")
+    
+    # Create data URL
+    b64_content = base64.b64encode(content).decode()
+    data_url = f"data:{content_type};base64,{b64_content}"
+    
+    # Calculate audio duration if applicable
+    duration = None
+    if media_type == "audio":
+        # Estimate duration based on file size (rough estimate)
+        # In production, you'd use a proper audio library
+        duration = len(content) / 16000  # Rough estimate for 128kbps
+    
+    media = SceneMedia(
+        type=media_type,
+        url=data_url,
+        filename=file.filename or "unnamed",
+        duration=duration,
+        size=len(content)
+    )
+    
+    # Update scene
+    scenes = storyboard.get("scenes", [])
+    scene_index = next((i for i, s in enumerate(scenes) if s["scene_id"] == scene_id), None)
+    
+    if scene_index is None:
+        raise HTTPException(status_code=404, detail="Scene not found")
+    
+    scenes[scene_index][media_type] = media.model_dump()
+    scenes[scene_index]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$set": {
+                "scenes": scenes,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": f"{media_type.capitalize()} uploaded", "media": media.model_dump()}
+
+@storyboard_router.delete("/{storyboard_id}/scenes/{scene_id}/media/{media_type}")
+async def delete_scene_media(
+    storyboard_id: str,
+    scene_id: str,
+    media_type: str,
+    user: User = Depends(get_current_user)
+):
+    """Delete media from a scene"""
+    if media_type not in ["image", "audio"]:
+        raise HTTPException(status_code=400, detail="Invalid media type")
+    
+    storyboard = await db.storyboards.find_one(
+        {"storyboard_id": storyboard_id, "user_id": user.user_id}
+    )
+    
+    if not storyboard:
+        raise HTTPException(status_code=404, detail="Storyboard not found")
+    
+    scenes = storyboard.get("scenes", [])
+    scene_index = next((i for i, s in enumerate(scenes) if s["scene_id"] == scene_id), None)
+    
+    if scene_index is None:
+        raise HTTPException(status_code=404, detail="Scene not found")
+    
+    scenes[scene_index][media_type] = None
+    scenes[scene_index]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.storyboards.update_one(
+        {"storyboard_id": storyboard_id},
+        {
+            "$set": {
+                "scenes": scenes,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {"message": f"{media_type.capitalize()} removed"}
+
 # ==================== HEALTH CHECK ====================
 
 @api_router.get("/")
