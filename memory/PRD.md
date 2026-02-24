@@ -8,6 +8,7 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 2. **Designers** - Want to prototype visual concepts rapidly using AI
 3. **Marketers** - Create promotional content with AI assistance
 4. **Developers** - Test and integrate various AI APIs in one place
+5. **Filmmakers/Directors** - Plan and visualize cinematic storyboards scene-by-scene
 
 ## Core Requirements (Static)
 1. Multi-provider AI generation (OpenAI, Fal.ai, Kling AI, ElevenLabs)
@@ -19,6 +20,7 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 7. Gallery to save and view generated content
 8. Dark/Light theme toggle
 9. Responsive design
+10. Storyboard Studio for visual narrative planning
 
 ## What's Been Implemented (January 7-8, 2026)
 ### Authentication
@@ -67,6 +69,24 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - [x] Visual indicator showing "From Image Generation" badge
 - [x] Option to clear loaded image and upload different one
 
+### NEW - Storyboard Studio (Feb 24, 2026)
+- [x] Project Overview Page - Grid layout showing all user storyboards
+- [x] Create new storyboards with custom titles
+- [x] Storyboard Editor with horizontal timeline view
+- [x] Scene cards with image placeholder, title, script preview
+- [x] Drag-and-drop scene reordering (using Framer Motion Reorder)
+- [x] Scene Detail Panel (side drawer) with:
+  - Scene title editing
+  - Script/dialogue text area
+  - Visual upload (image upload)
+  - Audio resource attachment
+  - Director notes field
+- [x] Add/delete scenes functionality
+- [x] Delete storyboards with confirmation
+- [x] Auto-save scene changes
+- [x] Respects global light/dark theme toggle
+- [x] Navigation link in sidebar with Clapperboard icon
+
 ### UI/UX
 - [x] Electric Orange theme with dark mode default
 - [x] Light/Dark theme toggle
@@ -86,15 +106,16 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - None (All requested features complete)
 
 ### P1 - High Priority
+- [ ] Structure Assist AI - AI agent to review storyboards and suggest pacing improvements
 - [ ] Kling AI Lip Sync feature
-- [ ] Batch file upload for voice cloning
 - [ ] Progress indicator for long-running generations
 
 ### P2 - Medium Priority
 - [ ] Generation history pagination
 - [ ] Batch generation support
 - [ ] Download all from gallery
-- [ ] Prompt templates library
+- [ ] Batch file upload for voice cloning
+- [ ] Export/share storyboard functionality
 
 ### P3 - Nice to Have
 - [ ] Share generated content
@@ -108,9 +129,10 @@ Build a webapp similar to creati.studio - an AI Creative Studio that allows user
 - **Database**: MongoDB
 - **Auth**: Emergent Google OAuth
 - **AI Providers**: OpenAI, Fal.ai, Kling AI, ElevenLabs
+- **Drag & Drop**: Framer Motion Reorder API
 
 ## Next Tasks
-1. Add Kling AI Lip Sync feature
-2. Implement progress/status indicators for all async generations
-3. Add prompt templates library for quick generation
-4. Implement generation history pagination
+1. Structure Assist AI - AI agent to suggest pacing improvements for storyboards
+2. Kling AI Lip Sync feature
+3. Implement progress/status indicators for all async generations
+4. Export/share storyboard functionality
