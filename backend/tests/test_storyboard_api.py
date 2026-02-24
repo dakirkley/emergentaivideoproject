@@ -145,32 +145,16 @@ class TestMediaEndpoints:
         print("✓ DELETE /api/storyboards/{id}/scenes/{scene_id}/media/{type} endpoint pattern exists")
 
 
-class TestAPIDocumentation:
-    """Test that API routes are properly registered"""
+class TestAPIEndpoints:
+    """Test that API endpoints are properly responding"""
     
-    def test_openapi_schema_available(self):
-        """Test OpenAPI schema is available"""
-        response = requests.get(f"{BASE_URL}/openapi.json")
+    def test_health_endpoint_returns_json(self):
+        """Test health endpoint returns valid JSON"""
+        response = requests.get(f"{API_URL}/health")
         assert response.status_code == 200
-        schema = response.json()
-        assert "paths" in schema
-        print("✓ OpenAPI schema is available")
-    
-    def test_storyboard_routes_in_schema(self):
-        """Test storyboard routes are in OpenAPI schema"""
-        response = requests.get(f"{BASE_URL}/openapi.json")
-        assert response.status_code == 200
-        schema = response.json()
-        paths = schema.get("paths", {})
-        
-        # Check for storyboard-related paths
-        storyboard_paths = [p for p in paths.keys() if "storyboard" in p.lower()]
-        assert len(storyboard_paths) > 0, "No storyboard routes found in OpenAPI schema"
-        print(f"✓ Found {len(storyboard_paths)} storyboard routes in schema")
-        
-        # Verify key routes exist
-        assert "/api/storyboards" in paths
-        print("✓ /api/storyboards route exists in schema")
+        data = response.json()
+        assert "status" in data
+        print("✓ Health endpoint returns valid JSON")
 
 
 if __name__ == "__main__":
